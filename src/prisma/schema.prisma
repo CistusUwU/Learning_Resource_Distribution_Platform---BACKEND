@@ -1,0 +1,515 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model book {
+  book_id              Int                    @id @default(autoincrement())
+  title                String                 @db.VarChar(500)
+  description          String?                @db.Text
+  price                Decimal                @db.Decimal(10, 2)
+  file_url             String                 @db.VarChar(500)
+  cover_image          String?                @db.VarChar(500)
+  pages                Int?
+  language             String?                @default("vi") @db.VarChar(10)
+  published_date       DateTime?              @db.Date
+  approval_status      book_approval_status?  @default(DRAFT)
+  submitted_at         DateTime?              @db.Timestamp(0)
+  approved_by_id       Int?
+  approved_at          DateTime?              @db.Timestamp(0)
+  rejection_reason     String?                @db.Text
+  view_count           Int?                   @default(0)
+  download_count       Int?                   @default(0)
+  visibility           String?                @default("COURSE") @db.VarChar(20)
+  is_archived          Boolean?               @default(false)
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  updated_at           DateTime?              @default(now()) @db.Timestamp(0)
+  lecturer             lecturer?              @relation(fields: [approved_by_id], references: [user_id], onUpdate: NoAction, map: "book_ibfk_1")
+  book_author          book_author[]
+  book_major           book_major[]
+  book_version_history book_version_history[]
+  chat_session         chat_session[]
+  course_book          course_book[]
+  flashcard            flashcard[]
+  library              library[]
+  order_item           order_item[]
+  royalty_record       royalty_record[]
+
+  @@index([approved_by_id], map: "approved_by_id")
+  @@index([approval_status], map: "idx_approval_status")
+  @@index([created_at], map: "idx_created_at")
+  @@index([price], map: "idx_price")
+  @@index([title(length: 100)], map: "idx_title")
+}
+
+model book_author {
+  book_author_id        Int      @id @default(autoincrement())
+  lecturer_id           Int
+  book_id               Int
+  contribution_role     String?  @default("Tác giả") @db.VarChar(100)
+  revenue_share_percent Decimal? @default(0.00) @db.Decimal(5, 2)
+  lecturer              lecturer @relation(fields: [lecturer_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "book_author_ibfk_1")
+  book                  book     @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "book_author_ibfk_2")
+
+  @@unique([lecturer_id, book_id], map: "unique_lecturer_book")
+  @@index([book_id], map: "idx_book_id")
+  @@index([lecturer_id], map: "idx_lecturer_id")
+}
+
+model book_major {
+  book_major_id Int      @id @default(autoincrement())
+  book_id       Int
+  major_id      Int
+  is_primary    Boolean? @default(true)
+  book          book     @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "book_major_ibfk_1")
+  major         major    @relation(fields: [major_id], references: [major_id], onDelete: Cascade, onUpdate: NoAction, map: "book_major_ibfk_2")
+
+  @@unique([book_id, major_id], map: "unique_book_major")
+  @@index([is_primary], map: "idx_is_primary")
+  @@index([major_id], map: "idx_major_id")
+}
+
+model book_version_history {
+  version_history_id Int                         @id @default(autoincrement())
+  book_id            Int
+  version_number     String                      @db.VarChar(20)
+  status             book_version_history_status @default(PENDING)
+  change_log         String?                     @db.Text
+  submitted_at       DateTime?                   @default(now()) @db.Timestamp(0)
+  reviewed_at        DateTime?                   @db.Timestamp(0)
+  reviewed_by_id     Int?
+  rejection_reason   String?                     @db.Text
+  book               book                        @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "book_version_history_ibfk_1")
+  lecturer           lecturer?                   @relation(fields: [reviewed_by_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "book_version_history_ibfk_2")
+
+  @@index([reviewed_by_id], map: "book_version_history_ibfk_2")
+  @@index([book_id], map: "idx_book_id")
+  @@index([status], map: "idx_status")
+  @@index([submitted_at], map: "idx_submitted_at")
+}
+
+model chat_message {
+  message_id         Int                      @id @default(autoincrement())
+  session_id         Int
+  sender_type        chat_message_sender_type
+  content            String                   @db.Text
+  rag_sources        Json?
+  confidence_score   Decimal?                 @db.Decimal(3, 2)
+  timestamp          DateTime?                @default(now()) @db.Timestamp(0)
+  processing_time_ms Int?
+  ai_model_version   String?                  @db.VarChar(50)
+  chat_session       chat_session             @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "chat_message_ibfk_1")
+
+  @@index([session_id], map: "idx_session_id")
+  @@index([timestamp], map: "idx_timestamp")
+}
+
+model chat_session {
+  session_id    Int            @id @default(autoincrement())
+  student_id    Int
+  book_id       Int?
+  title         String?        @db.VarChar(255)
+  started_at    DateTime?      @default(now()) @db.Timestamp(0)
+  last_activity DateTime?      @default(now()) @db.Timestamp(0)
+  is_archived   Boolean?       @default(false)
+  chat_message  chat_message[]
+  student       student        @relation(fields: [student_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "chat_session_ibfk_1")
+  book          book?          @relation(fields: [book_id], references: [book_id], onUpdate: NoAction, map: "chat_session_ibfk_2")
+
+  @@index([book_id], map: "idx_book_id")
+  @@index([last_activity], map: "idx_last_activity")
+  @@index([student_id], map: "idx_student_id")
+}
+
+model course {
+  course_id     Int           @id @default(autoincrement())
+  course_code   String        @unique(map: "course_code") @db.VarChar(20)
+  course_name   String        @db.VarChar(255)
+  lecturer_id   Int
+  major_id      Int
+  description   String?       @db.Text
+  credits       Int?
+  semester      String?       @db.VarChar(10)
+  academic_year String?       @db.VarChar(10)
+  lecturer      lecturer      @relation(fields: [lecturer_id], references: [user_id], onUpdate: NoAction, map: "course_ibfk_1")
+  major         major         @relation(fields: [major_id], references: [major_id], onUpdate: NoAction, map: "course_ibfk_2")
+  course_book   course_book[]
+
+  @@index([course_code], map: "idx_course_code")
+  @@index([lecturer_id], map: "idx_lecturer_id")
+  @@index([major_id], map: "idx_major_id")
+}
+
+model course_book {
+  course_book_id Int     @id @default(autoincrement())
+  course_id      Int
+  book_id        Int
+  semester_used  String? @db.VarChar(10)
+  course         course  @relation(fields: [course_id], references: [course_id], onDelete: Cascade, onUpdate: NoAction, map: "course_book_ibfk_1")
+  book           book    @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "course_book_ibfk_2")
+
+  @@unique([course_id, book_id], map: "unique_course_book")
+  @@index([book_id], map: "idx_book_id")
+  @@index([course_id], map: "idx_course_id")
+}
+
+model flashcard {
+  flashcard_id       Int                           @id @default(autoincrement())
+  student_id         Int
+  book_id            Int
+  source_page        Int?
+  source_chapter     String?                       @db.VarChar(100)
+  question           String                        @db.Text
+  answer             String                        @db.Text
+  difficulty_level   flashcard_difficulty_level?   @default(MEDIUM)
+  tags               Json?
+  review_count       Int?                          @default(0)
+  correct_count      Int?                          @default(0)
+  last_review_result flashcard_last_review_result?
+  created_at         DateTime?                     @default(now()) @db.Timestamp(0)
+  last_reviewed      DateTime?                     @db.Timestamp(0)
+  ai_model_version   String?                       @db.VarChar(50)
+  student            student                       @relation(fields: [student_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "flashcard_ibfk_1")
+  book               book                          @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "flashcard_ibfk_2")
+
+  @@index([book_id], map: "idx_book_id")
+  @@index([difficulty_level], map: "idx_difficulty_level")
+  @@index([last_reviewed], map: "idx_last_reviewed")
+  @@index([student_id], map: "idx_student_id")
+}
+
+model lecturer {
+  user_id              Int                    @id
+  lecturer_code        String                 @unique(map: "lecturer_code") @db.VarChar(20)
+  full_name            String                 @db.VarChar(255)
+  date_of_birth        DateTime?              @db.Date
+  phone                String?                @db.VarChar(15)
+  major_id             Int
+  title                String?                @db.VarChar(50)
+  hire_date            DateTime?              @db.Date
+  avatar_url           String?                @db.VarChar(500)
+  is_admin             Boolean?               @default(false)
+  book                 book[]
+  book_author          book_author[]
+  book_version_history book_version_history[]
+  course               course[]
+  user                 user                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "lecturer_ibfk_1")
+  major                major                  @relation(fields: [major_id], references: [major_id], onUpdate: NoAction, map: "lecturer_ibfk_2")
+  royalty_record       royalty_record[]
+
+  @@index([is_admin], map: "idx_is_admin")
+  @@index([lecturer_code], map: "idx_lecturer_code")
+  @@index([major_id], map: "idx_major_id")
+}
+
+model library {
+  library_id       Int       @id @default(autoincrement())
+  student_id       Int
+  book_id          Int
+  purchased_date   DateTime? @default(now()) @db.Timestamp(0)
+  access_expiry    DateTime? @db.Timestamp(0)
+  last_accessed    DateTime? @db.Timestamp(0)
+  reading_progress Int?      @default(0)
+  student          student   @relation(fields: [student_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "library_ibfk_1")
+  book             book      @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "library_ibfk_2")
+
+  @@unique([student_id, book_id], map: "unique_student_book")
+  @@index([book_id], map: "idx_book_id")
+  @@index([purchased_date], map: "idx_purchased_date")
+  @@index([student_id], map: "idx_student_id")
+}
+
+model major {
+  major_id    Int          @id @default(autoincrement())
+  major_code  String       @unique(map: "major_code") @db.VarChar(20)
+  major_name  String       @db.VarChar(255)
+  description String?      @db.Text
+  faculty     String?      @db.VarChar(100)
+  is_active   Boolean?     @default(true)
+  book_major  book_major[]
+  course      course[]
+  lecturer    lecturer[]
+  student     student[]
+
+  @@index([major_code], map: "idx_major_code")
+  @@index([is_active], map: "idx_major_is_active")
+}
+
+model order {
+  order_id            Int                   @id @default(autoincrement())
+  student_id          Int
+  order_code          String                @unique(map: "order_code") @db.VarChar(50)
+  subtotal            Decimal               @db.Decimal(10, 2)
+  discount_amount     Decimal?              @default(0.00) @db.Decimal(10, 2)
+  total_amount        Decimal               @db.Decimal(10, 2)
+  status              order_status?         @default(PENDING)
+  payment_method      String?               @db.VarChar(50)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  completed_at        DateTime?             @db.Timestamp(0)
+  student             student               @relation(fields: [student_id], references: [user_id], onUpdate: NoAction, map: "order_ibfk_1")
+  order_item          order_item[]
+  payment             payment?
+  payment_transaction payment_transaction[]
+  transaction         transaction[]
+
+  @@index([created_at], map: "idx_created_at")
+  @@index([order_code], map: "idx_order_code")
+  @@index([status], map: "idx_status")
+  @@index([student_id], map: "idx_student_id")
+}
+
+model order_item {
+  order_item_id Int     @id @default(autoincrement())
+  order_id      Int
+  book_id       Int
+  quantity      Int?    @default(1)
+  unit_price    Decimal @db.Decimal(10, 2)
+  subtotal      Decimal @db.Decimal(10, 2)
+  order         order   @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "order_item_ibfk_1")
+  book          book    @relation(fields: [book_id], references: [book_id], onUpdate: NoAction, map: "order_item_ibfk_2")
+
+  @@index([book_id], map: "idx_book_id")
+  @@index([order_id], map: "idx_order_id")
+}
+
+model payment {
+  id                String         @id
+  orderId           String         @unique(map: "Payment_orderId_key")
+  txnRef            String         @unique(map: "Payment_txnRef_key")
+  amount            Int
+  method            payment_method
+  status            payment_status @default(PENDING)
+  vnpayTxnNo        String?
+  vnpayBankCode     String?
+  vnpayCardType     String?
+  vnpayPayDate      String?
+  vnpayResponseCode String?
+  qrCode            String?        @db.Text
+  expiredAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime
+  order             order          @relation(fields: [orderId], references: [order_code], map: "Payment_orderId_fkey")
+}
+
+model payment_transaction {
+  id                   String                              @id
+  transactionCode      String                              @unique
+  orderId              String
+  amount               Int
+  transactionType      payment_transaction_transactionType @default(PAYMENT)
+  status               payment_transaction_status          @default(PENDING)
+  paymentGateway       String?
+  gatewayTransactionId String?
+  bankCode             String?
+  cardType             String?
+  payDate              String?
+  responseCode         String?
+  note                 String?                             @db.Text
+  createdAt            DateTime                            @default(now())
+  updatedAt            DateTime
+  order                order                               @relation(fields: [orderId], references: [order_code])
+
+  @@index([orderId], map: "payment_transaction_orderId_fkey")
+}
+
+model payout_batch {
+  id             String              @id
+  month          Int
+  year           Int
+  total_amount   Int
+  status         payout_batch_status @default(PENDING)
+  note           String?             @db.Text
+  processed_at   DateTime?           @db.Timestamp(0)
+  created_at     DateTime            @default(now()) @db.Timestamp(0)
+  updated_at     DateTime            @db.Timestamp(0)
+  royalty_record royalty_record[]
+
+  @@unique([month, year], map: "unique_payout_month_year")
+  @@index([year], map: "idx_payout_year")
+}
+
+model royalty_record {
+  id            String                @id
+  lecturer_id   Int
+  book_id       Int
+  order_item_id Int
+  order_id      String                @db.VarChar(100)
+  gross_amount  Int
+  share_percent Decimal               @db.Decimal(5, 2)
+  earned_amount Int
+  status        royalty_record_status @default(PENDING)
+  paid_at       DateTime?             @db.Timestamp(0)
+  payout_id     String?               @db.VarChar(36)
+  created_at    DateTime              @default(now()) @db.Timestamp(0)
+  updated_at    DateTime              @db.Timestamp(0)
+  student_id    Int?
+  book          book                  @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction)
+  lecturer      lecturer              @relation(fields: [lecturer_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  payout_batch  payout_batch?         @relation(fields: [payout_id], references: [id], onUpdate: NoAction)
+  student       student?              @relation(fields: [student_id], references: [user_id], onUpdate: NoAction)
+
+  @@index([book_id], map: "idx_royalty_book")
+  @@index([created_at], map: "idx_royalty_created")
+  @@index([lecturer_id], map: "idx_royalty_lecturer")
+  @@index([payout_id], map: "idx_royalty_payout")
+  @@index([status], map: "idx_royalty_status")
+  @@index([student_id], map: "idx_royalty_student")
+}
+
+model student {
+  user_id         Int              @id
+  student_code    String           @unique(map: "student_code") @db.VarChar(20)
+  full_name       String           @db.VarChar(255)
+  date_of_birth   DateTime?        @db.Date
+  phone           String?          @db.VarChar(15)
+  major_id        Int
+  enrollment_year Int
+  class_name      String?          @db.VarChar(50)
+  avatar_url      String?          @db.VarChar(500)
+  chat_session    chat_session[]
+  flashcard       flashcard[]
+  library         library[]
+  order           order[]
+  royalty_record  royalty_record[]
+  user            user             @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "student_ibfk_1")
+  major           major            @relation(fields: [major_id], references: [major_id], onUpdate: NoAction, map: "student_ibfk_2")
+
+  @@index([enrollment_year], map: "idx_enrollment_year")
+  @@index([major_id], map: "idx_major_id")
+  @@index([student_code], map: "idx_student_code")
+}
+
+model studiocache {
+  id        String   @id
+  bookId    Int
+  type      String
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  @@unique([bookId, type], map: "StudioCache_bookId_type_key")
+}
+
+model transaction {
+  transaction_id         Int                          @id @default(autoincrement())
+  order_id               Int
+  transaction_code       String                       @unique(map: "transaction_code") @db.VarChar(100)
+  amount                 Decimal                      @db.Decimal(10, 2)
+  transaction_type       transaction_transaction_type
+  status                 transaction_status?          @default(PENDING)
+  payment_gateway        String?                      @db.VarChar(50)
+  gateway_transaction_id String?                      @db.VarChar(255)
+  transaction_date       DateTime?                    @default(now()) @db.Timestamp(0)
+  note                   String?                      @db.Text
+  order                  order                        @relation(fields: [order_id], references: [order_id], onUpdate: NoAction, map: "transaction_ibfk_1")
+
+  @@index([order_id], map: "idx_order_id")
+  @@index([status], map: "idx_status")
+  @@index([transaction_code], map: "idx_transaction_code")
+  @@index([transaction_date], map: "idx_transaction_date")
+}
+
+model user {
+  user_id       Int       @id @default(autoincrement())
+  email         String    @unique(map: "email") @db.VarChar(255)
+  password_hash String?   @db.VarChar(255)
+  google_id     String?   @unique(map: "google_id") @db.VarChar(255)
+  is_active     Boolean?  @default(true)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  last_login    DateTime? @db.Timestamp(0)
+  lecturer      lecturer?
+  student       student?
+
+  @@index([email], map: "idx_email")
+  @@index([google_id], map: "idx_google_id")
+  @@index([is_active], map: "idx_is_active")
+}
+
+enum chat_message_sender_type {
+  USER
+  AI
+}
+
+enum book_version_history_status {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  FAILED_APPROVAL
+}
+
+enum payment_method {
+  VNPAY_QR
+  VNPAY_ATM
+}
+
+enum payment_transaction_transactionType {
+  PAYMENT
+  REFUND
+}
+
+enum payout_batch_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+}
+
+enum transaction_transaction_type {
+  PAYMENT
+  REFUND
+}
+
+enum payment_status {
+  PENDING
+  SUCCESS
+  FAILED
+  EXPIRED
+}
+
+enum payment_transaction_status {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum transaction_status {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum order_status {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum flashcard_difficulty_level {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum royalty_record_status {
+  PENDING
+  PAID
+}
+
+enum book_approval_status {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  UPDATE_REQUIRED
+}
+
+enum flashcard_last_review_result {
+  CORRECT
+  INCORRECT
+  SKIPPED
+}
