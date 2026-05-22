@@ -10,6 +10,13 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   app.setGlobalPrefix('api');
   app.use(morgan('dev'))
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
+
   await app.listen(port);
 
   console.log(`Application is running on: http://localhost:${port}`);
