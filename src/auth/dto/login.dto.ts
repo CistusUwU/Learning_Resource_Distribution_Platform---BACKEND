@@ -1,4 +1,5 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UserRole } from 'src/common/enums/role.enum';
 
 export class LoginDto{
     @IsString()
@@ -10,7 +11,6 @@ export class LoginDto{
     password: string;
 
     @IsOptional()
-    @IsString()
-    @IsIn(['STUDENT', 'STAFF'])
-    role?: 'STUDENT' | 'STAFF';
+    @IsEnum(UserRole)
+    role?: UserRole
 }

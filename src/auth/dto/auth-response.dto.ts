@@ -1,9 +1,11 @@
+import { UserRole } from "src/common/enums/role.enum";
+
 export class UserResponseDto{
     id: number;
     university_id: string;
     full_name: string;
     email: string;
-    role: 'STUDENT' | 'STAFF';
+    role: UserRole;
 }
 
 export class AuthResponseDto{
