@@ -7,14 +7,15 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
 import { CategoriesModule } from './categories/categories.module';
+import { BooksModule } from './books/books.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
-    AuthModule, 
+    AuthModule,
+    BooksModule,
     CategoriesModule,
-
   ],
   controllers: [AppController],
   providers: [
