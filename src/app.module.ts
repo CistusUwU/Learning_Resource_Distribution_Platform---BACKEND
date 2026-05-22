@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
+import { CategoriesModule } from './categories/categories.module';
 import { BooksModule } from './books/books.module';
 
 @Module({
@@ -14,7 +15,7 @@ import { BooksModule } from './books/books.module';
     PrismaModule,
     AuthModule,
     BooksModule,
-    
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [
