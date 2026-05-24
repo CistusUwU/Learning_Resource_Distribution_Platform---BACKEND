@@ -5,9 +5,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, Reflector } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CategoriesModule } from './categories/categories.module';
 import { BooksModule } from './books/books.module';
+import { OrdersModule } from './orders/orders.module';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { BooksModule } from './books/books.module';
     AuthModule,
     BooksModule,
     CategoriesModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [
@@ -24,7 +27,12 @@ import { BooksModule } from './books/books.module';
       provide: APP_GUARD,
       useFactory: (reflector: Reflector) => new JwtAuthGuard(reflector),
       inject: [Reflector],
-    }
+    },
+    {
+      provide: APP_GUARD,
+      useFactory: (reflector: Reflector) => new RolesGuard(reflector),
+      inject: [Reflector],
+    },
   ],
 })
 export class AppModule {}

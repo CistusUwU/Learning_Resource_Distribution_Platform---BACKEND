@@ -1,4 +1,4 @@
-import { UserRole } from "src/common/enums/role.enum";
+import { UserRole } from "../../common/enums/role.enum";
 
 export class UserResponseDto{
     id: number;
