@@ -62,7 +62,11 @@ export class AuthService {
             throw new UnauthorizedException(resolvedRole === UserRole.STAFF ? errStaff : errStudent);
         }
 
-        const payload = {sub: user.user_id, email: user.email};
+        const payload = {
+            sub: user.user_id,
+            email: user.email,
+            role: resolvedRole,
+        };
         const access_token = this.jwtService.sign(payload);
 
         return {
