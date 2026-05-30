@@ -12,6 +12,7 @@ import { OrdersModule } from './orders/orders.module';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PaymentModule } from './payment/payment.module';
 import { TransactionModule } from './transactions/transaction.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TransactionModule } from './transactions/transaction.module';
     OrdersModule,
     PaymentModule,
     TransactionModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [
