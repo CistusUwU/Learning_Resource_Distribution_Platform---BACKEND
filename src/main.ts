@@ -7,7 +7,7 @@ var morgan = require('morgan')
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env.PORT ?? 3001;
   app.setGlobalPrefix('api');
   app.use(morgan('dev'))
 
@@ -26,3 +26,6 @@ bootstrap().catch((err) => {
   console.error('Lỗi khởi động:', err);
   process.exit(1);
 });
+
+
+
