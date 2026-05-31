@@ -25,7 +25,7 @@ export class AuthService {
         let full_name = '';
         let resolvedRole: UserRole = role || UserRole.STUDENT;
 
-        if (resolvedRole === UserRole.STAFF) {
+        if (resolvedRole === UserRole.STAFF || resolvedRole === UserRole.ADMIN) {
             const lecturer = await this.prisma.lecturer.findUnique({
                 where: { lecturer_code: code },
                 include: { user: true },
@@ -34,6 +34,7 @@ export class AuthService {
                 user = lecturer.user;
                 university_id = lecturer.lecturer_code;
                 full_name = lecturer.full_name;
+                resolvedRole = lecturer.is_admin ? UserRole.ADMIN : UserRole.STAFF;
             }
             if (!user) throw new UnauthorizedException(errStaff);
         } else {
@@ -59,7 +60,9 @@ export class AuthService {
         );
 
         if (!isPasswordValid){
-            throw new UnauthorizedException(resolvedRole === UserRole.STAFF ? errStaff : errStudent);
+            throw new UnauthorizedException(
+                resolvedRole === UserRole.STAFF || resolvedRole === UserRole.ADMIN ? errStaff : errStudent
+            );
         }
 
         const payload = {
@@ -105,7 +108,7 @@ export class AuthService {
                 university_id: lecturer.lecturer_code,
                 full_name: lecturer.full_name,
                 email: lecturer.user.email,
-                role: UserRole.STAFF,
+                role: lecturer.is_admin ? UserRole.ADMIN : UserRole.STAFF,
             };
         }
 

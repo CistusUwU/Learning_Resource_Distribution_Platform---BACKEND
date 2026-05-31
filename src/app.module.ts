@@ -11,6 +11,7 @@ import { BooksModule } from './books/books.module';
 import { OrdersModule } from './orders/orders.module';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PaymentModule } from './payment/payment.module';
+import { TransactionModule } from './transactions/transaction.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PaymentModule } from './payment/payment.module';
     CategoriesModule,
     OrdersModule,
     PaymentModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [
