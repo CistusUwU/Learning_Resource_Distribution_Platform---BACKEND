@@ -1,0 +1,22 @@
+info:
+  name: "[Auth - Login Student]"
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/auth/login"
+  params:
+    - name: ""
+      value: ""
+      type: query
+  body:
+    type: json
+    data: '{ "identifier": "SV001", "password": "password123" }'
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

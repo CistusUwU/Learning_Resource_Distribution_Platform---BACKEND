@@ -1,0 +1,4 @@
+name: E
+variables:
+  - name: BaseURL
+    value: http://localhost:3001
