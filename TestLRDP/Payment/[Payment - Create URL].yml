@@ -1,0 +1,17 @@
+info:
+  name: "[Payment - Create URL]"
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/payment/create/ORD-1780343797572-5"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgwMzQxNzIzLCJleHAiOjE3ODA5NDY1MjN9.r2F6QmeJbmu1mrMgftTUrCZfYLOCYPkO86DrwsZTVQM
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

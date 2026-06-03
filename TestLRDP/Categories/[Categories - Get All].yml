@@ -1,0 +1,17 @@
+info:
+  name: "[Categories - Get All]"
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{BaseURL}}/api/categories"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODAzNDE4MDEsImV4cCI6MTc4MDk0NjYwMX0.iTceEYcrduCWpOmRz3wmH7yBtZLei0cTEBSqZvvfu4s
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
