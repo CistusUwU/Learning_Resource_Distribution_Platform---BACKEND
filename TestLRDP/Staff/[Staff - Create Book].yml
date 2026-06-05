@@ -1,0 +1,28 @@
+info:
+  name: "[Staff - Create Book]"
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/staff/books"
+  body:
+    type: json
+    data: |-
+      {
+          "title": "Công Nghệ Sinh Học Dược phần 1",
+          "description": "Giáo trình công nghệ sinh học dược phần 1",
+          "price": 150000,
+          "file_url": "/uploads/books/book-1780680299906-249702517.pdf",
+          "cover_image": "/uploads/covers/cover-1780640892360-326172031.png",
+          "majorIds": [5]
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODA2MjA5MDcsImV4cCI6MTc4MTIyNTcwN30.ATAeJWYQbibxt7yzkUaPKc5r8CSQ8o4s_n1A6xguZTU
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

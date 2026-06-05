@@ -1,0 +1,15 @@
+info:
+  name: "[Staff - Submit Book]"
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/staff/books/18/submit"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,15 @@
+info:
+  name: "[Staff - Cancel Submission]"
+  type: http
+  seq: 7
+
+http:
+  method: PATCH
+  url: "{{BaseURL}}/api/staff/books/18/cancel"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
