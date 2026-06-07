@@ -1,0 +1,24 @@
+info:
+  name: "[Staff - Upload PDF]"
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/staff/upload/pdf"
+  body:
+    type: multipart-form
+    data:
+      - name: file
+        type: file
+        value:
+          - C:\Users\Nyaan\Downloads\Công nghệ sinh học dược_1.pdf
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODA2MjA5MDcsImV4cCI6MTc4MTIyNTcwN30.ATAeJWYQbibxt7yzkUaPKc5r8CSQ8o4s_n1A6xguZTU
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

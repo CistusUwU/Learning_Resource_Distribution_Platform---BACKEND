@@ -1,7 +1,10 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookQueryDto } from "./dto/book-query.dto";
 import { book_approval_status, book_version_history_status, Prisma } from "@prisma/client";
+import { CreateBookDto } from "./dto/create-book.dto";
+import { UpdateBookDto } from "./dto/update-book.dto";
+import { SubmitBookDto } from "./dto/submit-book.dto";
 
 @Injectable()
 export class BooksService{
@@ -129,5 +132,259 @@ export class BooksService{
         if (!book) throw new NotFoundException(`Book with ID ${id} not found`);
 
         return book;
+    }
+
+    async findBooksByLecturer(lecturerId: number) {
+        return this.prisma.book.findMany({
+            where: {
+                book_author: {
+                    some: {
+                        lecturer_id: lecturerId
+                    }
+                }    
+            },
+            select: {
+                book_id: true,
+                title: true,
+                price: true,
+                file_url: true,
+                cover_image: true,
+                approval_status: true,
+                submitted_at: true,
+                approved_at: true,
+                rejection_reason: true,
+                created_at: true,
+                book_major: {
+                    select: {
+                        major: {
+                            select: {
+                                major_id: true,
+                                major_name: true,
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { created_at: 'desc' },
+        })
+    }
+
+    async createBook(lecturerId: number, dto: CreateBookDto){
+        return this.prisma.$transaction(async (tx) => {
+            const book = await tx.book.create({
+                data:{
+                    title: dto.title,
+                    description: dto.description,
+                    price: dto.price,
+                    file_url: dto.file_url,
+                    cover_image: dto.cover_image,
+                    approval_status: book_approval_status.DRAFT,
+                },
+                select: {
+                    book_id: true,
+                    title: true,
+                    description: true,
+                    price: true,
+                    file_url: true,
+                    cover_image: true,
+                    approval_status: true,
+                    created_at: true,
+                }
+            });
+
+            await tx.book_author.create({
+                data: {
+                    book_id: book.book_id,
+                    lecturer_id: lecturerId,
+                },
+            });
+
+            await tx.book_major.createMany({
+                data: dto.majorIds.map((majorId) => ({
+                    book_id: book.book_id,
+                    major_id: majorId,
+                })),
+            });
+
+            return book;
+        });
+    }
+
+    async updateBook(lecturerId: number, bookId: number, dto: UpdateBookDto) {
+        const book = await this.prisma.book.findFirst({
+            where: {
+                book_id: bookId,
+                book_author: {
+                    some: {
+                        lecturer_id: lecturerId
+                    }
+                },
+            },
+        });
+
+        if (!book) throw new NotFoundException('Không tìm thấy sách');
+
+        if (book.approval_status === book_approval_status.PENDING ||
+            book.approval_status === book_approval_status.APPROVED
+        ) {
+            throw new BadRequestException('Không thể sửa sách đang chờ duyệt hoặc đang bán');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            const updated = await tx.book.update({
+                where: {
+                    book_id: bookId
+                },
+                data: {
+                    title: dto.title,
+                    description: dto.description,
+                    price: dto.price,
+                    file_url: dto.file_url,
+                    cover_image: dto.cover_image,
+                },
+                select: {
+                    book_id: true,
+                    title: true,
+                    description: true,
+                    price: true,
+                    file_url: true,
+                    cover_image: true,
+                    approval_status: true,
+                    created_at: true,
+                }
+            });
+
+            if (dto.majorIds) {
+                await tx.book_major.deleteMany({
+                    where: {
+                        book_id: bookId
+                    }
+                });
+
+                await tx.book_major.createMany({
+                    data: dto.majorIds.map((majorId) => ({
+                        book_id: bookId,
+                        major_id: majorId,
+                    })),
+                });
+            }
+
+            return updated;
+        })
+    }
+
+    async submitBook(lecturerId: number, bookId: number, dto: SubmitBookDto){
+        const book = await this.prisma.book.findFirst({
+            where: {
+                book_id: bookId,
+                book_author: {
+                    some: {
+                        lecturer_id:lecturerId
+                    }
+                }
+            },
+        });
+
+        if (!book) throw new NotFoundException('Không tìm thấy sách');
+
+        if (
+            book.approval_status === book_approval_status.PENDING ||
+            book.approval_status === book_approval_status.APPROVED
+        ) {
+            throw new BadRequestException('Không thể submit sách ở trạng thái này');
+        }
+
+        const versionCount = await this.prisma.book_version_history.count({
+            where: {
+                book_id: bookId,
+                status: {
+                    not: book_version_history_status.CANCELLED
+                }
+            },
+        });
+
+        const versionNumber = `v${versionCount + 1}`;
+
+        return this.prisma.$transaction(async (tx) => {
+            const updated = await tx.book.update({
+                where: {
+                    book_id: bookId
+                },
+                data: {
+                    approval_status: book_approval_status.PENDING,
+                    submitted_at: new Date(),
+                },
+                select: {
+                    book_id: true,
+                    title: true,
+                    description: true,
+                    price: true,
+                    file_url: true,
+                    cover_image: true,
+                    approval_status: true,
+                    created_at: true,
+                }
+            });
+
+            await tx.book_version_history.create({
+                data: {
+                    book_id: bookId,
+                    version_number: versionNumber,
+                    status: book_version_history_status.PENDING,
+                    change_log: dto.change_log,
+                    submitted_at: new Date(),
+                },
+            });
+
+            return updated;
+        });
+    }
+
+    async cancelSubmission(lecturerId: number, bookId: number) {
+        const book = await this.prisma.book.findFirst({
+            where: {
+                book_id: bookId,
+                book_author: {
+                    some: {
+                        lecturer_id: lecturerId
+                    }
+                }
+            },
+        });
+
+        if (!book) throw new NotFoundException('Không tìm thấy sách');
+
+        if (book.approval_status !== book_approval_status.PENDING) {
+            throw new BadRequestException('Chỉ có thể hủy sách đang chờ duyệt');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            await tx.book.update({
+                where: {
+                    book_id: bookId
+                },
+                data: {
+                    approval_status: book_approval_status.DRAFT,
+                    submitted_at: null,
+                },
+            });
+
+            const latestVersion = await tx.book_version_history.findFirst({
+                where: {
+                    book_id: bookId,
+                    status: book_version_history_status.PENDING,
+                },
+                orderBy: { submitted_at: 'desc' },
+            });
+
+            if (latestVersion) {
+                await tx.book_version_history.update({
+                    where: { version_history_id: latestVersion.version_history_id },
+                    data: { status: book_version_history_status.CANCELLED },
+                });
+            }
+
+            return { success: true };
+        })
     }
 }
