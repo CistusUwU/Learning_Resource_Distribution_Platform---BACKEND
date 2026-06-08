@@ -5,6 +5,8 @@ import { book_approval_status, book_version_history_status, Prisma } from "@pris
 import { CreateBookDto } from "./dto/create-book.dto";
 import { UpdateBookDto } from "./dto/update-book.dto";
 import { SubmitBookDto } from "./dto/submit-book.dto";
+import { BookRejectionDto } from "./dto/book-rejection.dto";
+
 
 @Injectable()
 export class BooksService{
@@ -386,5 +388,200 @@ export class BooksService{
 
             return { success: true };
         })
+    }
+
+    async getPendingBook(){
+        return this.prisma.book.findMany({
+            where: {
+                approval_status: book_approval_status.PENDING
+            },
+            select:{
+                book_id: true,
+                title: true,
+                description: true,
+                price: true,
+                cover_image: true,
+                file_url: true,
+                submitted_at: true,
+                created_at: true,
+                book_author: {
+                    select: {
+                        lecturer: {
+                            select: {
+                                full_name: true,
+                                lecturer_code: true,
+                            }
+                        }
+                    }
+                },
+                book_major: {
+                    select: {
+                        major: {
+                            select: {
+                                major_id: true,
+                                major_code: true,
+                            }
+                        }
+                    }
+                },
+                book_version_history: {
+                    orderBy: { submitted_at: 'desc' },
+                    take: 1,
+                    select: {
+                        version_number: true,
+                        change_log: true,
+                        submitted_at: true,
+                    }
+                }
+            },
+            orderBy: { submitted_at: 'asc' },
+        });
+    }
+
+    async approveBook(userId: number, bookId: number) {
+        const book = await this.prisma.book.findUnique({
+            where: {
+                book_id: bookId
+            },
+        });
+
+        if (!book) throw new NotFoundException('Không tìm thấy sách');
+
+        if (book.approval_status !== book_approval_status.PENDING) {
+            throw new BadRequestException('Chỉ có thể duyệt sách đang chờ duyệt');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            await tx.book.update({
+                where: {
+                    book_id: bookId
+                },
+                data: {
+                    approval_status: book_approval_status.APPROVED,
+                    approved_by_id: userId,
+                    approved_at: new Date(),
+                },
+            });
+
+            const latestVersion = await tx.book_version_history.findFirst({
+                where: {
+                    book_id: bookId,
+                    status: book_version_history_status.PENDING,
+                },
+                orderBy: { submitted_at: 'desc' }
+            });
+
+            if (latestVersion) {
+                await tx.book_version_history.update({
+                    where: { version_history_id: latestVersion.version_history_id },
+                    data: {
+                        status: book_version_history_status.APPROVED,
+                        reviewed_by_id: userId,
+                        reviewed_at: new Date()
+                    },
+                });
+            }
+
+            return { success: true };
+        })
+    }
+
+    async approveBooks(userId: number, bookIds: number[]) {
+        const approved: number[] = [];
+        const skipped: number[] = [];
+
+        await this.prisma.$transaction(async (tx) => {
+
+            for (const bookId of bookIds) {
+                const book = await tx.book.findUnique({
+                    where: { book_id: bookId },
+                });
+
+                if (!book || book.approval_status !== book_approval_status.PENDING){
+                    skipped.push(bookId);
+                    continue;
+                }
+                    
+            
+
+                await tx.book.update({
+                    where: { book_id: bookId },
+                    data: {
+                        approval_status: book_approval_status.APPROVED,
+                        approved_by_id: userId,
+                        approved_at: new Date(),
+                    },
+                });
+
+                const latestVersion = await tx.book_version_history.findFirst({
+                    where: {
+                        book_id: bookId,
+                        status: book_version_history_status.PENDING,
+                    },
+                    orderBy: { submitted_at: 'desc' },
+                });
+
+                if (latestVersion) {
+                    await tx.book_version_history.update({
+                        where: { version_history_id: latestVersion.version_history_id },
+                        data: {
+                            status: book_version_history_status.APPROVED,
+                            reviewed_by_id: userId,
+                            reviewed_at: new Date()
+                        },
+                    });
+                }
+
+                approved.push(bookId);
+            }
+        });
+        
+        return { approved, skipped };
+    }
+
+    async rejectBook(userId: number, bookId: number, dto: BookRejectionDto) {
+        const book = await this.prisma.book.findUnique({
+            where: { book_id: bookId },
+        });
+
+        if (!book) throw new NotFoundException('Không tìm thấy sách');
+
+        if (book.approval_status !== book_approval_status.PENDING) {
+            throw new BadRequestException('Chỉ có thể từ chối sách đang chờ duyệt');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            await tx.book.update({
+                where: {
+                    book_id: bookId
+                },
+                data: {
+                    approval_status: book_approval_status.REJECTED,
+                    rejection_reason: dto.rejection_reason,
+                },
+            });
+
+            const latestVersion = await tx.book_version_history.findFirst({
+                where: {
+                    book_id: bookId,
+                    status: book_version_history_status.PENDING,
+                },
+                orderBy: { submitted_at: 'desc' },
+            });
+
+            if (latestVersion) {
+                await tx.book_version_history.update({
+                    where: { version_history_id: latestVersion?.version_history_id },
+                    data: {
+                        status: book_version_history_status.REJECTED,
+                        reviewed_by_id: userId,
+                        reviewed_at: new Date(),
+                        rejection_reason: dto.rejection_reason,
+                    },
+                });
+            }
+
+            return { success: true };
+        });
     }
 }

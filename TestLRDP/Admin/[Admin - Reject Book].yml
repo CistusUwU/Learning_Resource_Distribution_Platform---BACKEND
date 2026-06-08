@@ -1,0 +1,19 @@
+info:
+  name: "[Admin - Reject Book]"
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{BaseURL}}/api/admin/books/:bookId/reject"
+  params:
+    - name: bookId
+      value: ""
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

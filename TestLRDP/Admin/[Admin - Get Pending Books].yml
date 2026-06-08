@@ -1,0 +1,17 @@
+info:
+  name: "[Admin - Get Pending Books]"
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{BaseURL}}/api/admin/books/pending"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4MDk1NDY5OCwiZXhwIjoxNzgxNTU5NDk4fQ.MWTPlJS3h5P2mVvXwmBrbLM5K4WkrAyZS79iNb90UHQ
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
