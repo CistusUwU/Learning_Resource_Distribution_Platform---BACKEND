@@ -15,6 +15,7 @@ import { TransactionModule } from './transactions/transaction.module';
 import { UsersModule } from './users/users.module';
 import { LibraryModule } from './user-library/library.module';
 import { StaffModule } from './staff/staff.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { StaffModule } from './staff/staff.module';
     UsersModule,
     LibraryModule,
     StaffModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
