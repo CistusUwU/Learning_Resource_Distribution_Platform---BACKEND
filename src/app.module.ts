@@ -17,6 +17,7 @@ import { LibraryModule } from './user-library/library.module';
 import { StaffModule } from './staff/staff.module';
 import { AdminModule } from './admin/admin.module';
 import { RevenueModule } from './revenue/revenue.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { RevenueModule } from './revenue/revenue.module';
     StaffModule,
     AdminModule,
     RevenueModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
