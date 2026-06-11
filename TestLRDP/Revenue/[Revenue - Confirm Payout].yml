@@ -1,0 +1,17 @@
+info:
+  name: "[Revenue - Confirm Payout]"
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{BaseURL}}/api/admin/revenue/payouts/PAY-BATCH-1781165036061/confirm"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4MDk1NDY5OCwiZXhwIjoxNzgxNTU5NDk4fQ.MWTPlJS3h5P2mVvXwmBrbLM5K4WkrAyZS79iNb90UHQ
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

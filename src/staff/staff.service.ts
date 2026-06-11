@@ -3,13 +3,21 @@ import { CreateBookDto } from "../books/dto/create-book.dto";
 import { BooksService } from "../books/books.service";
 import { SubmitBookDto } from "../books/dto/submit-book.dto";
 import { UpdateBookDto } from "../books/dto/update-book.dto";
+import { RevenueService } from "../revenue/revenue.service";
 
 @Injectable()
 export class StaffService {
-    constructor(private readonly booksService: BooksService) {}
+    constructor(
+        private readonly booksService: BooksService,
+        private readonly revenueService: RevenueService,
+    ) {}
 
     getMyBooks(lecturerId: number) {
         return this.booksService.findBooksByLecturer(lecturerId);
+    }
+
+    getMyRevenue(lecturerId: number) {
+        return this.revenueService.getMyRevenue(lecturerId);
     }
 
     createBook(lecturerId: number, dto: CreateBookDto){

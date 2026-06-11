@@ -5,12 +5,10 @@ info:
 
 http:
   method: PATCH
-  url: "{{BaseURL}}/api/admin/books/:bookId/approve"
-  params:
-    - name: bookId
-      value: ""
-      type: path
-  auth: inherit
+  url: "{{BaseURL}}/api/admin/books/19/approve"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4MTA4MTUyNiwiZXhwIjoxNzgxNjg2MzI2fQ.Tejdnj4Bizb_k74qPDc8lRWbwLlDvnnArd7a1p1WM-Q
 
 settings:
   encodeUrl: true

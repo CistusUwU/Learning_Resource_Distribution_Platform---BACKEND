@@ -1,0 +1,25 @@
+info:
+  name: "[Revenue - Create Payout]"
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/admin/revenue/payouts"
+  body:
+    type: json
+    data: |-
+      {
+          "month": 6,
+          "year": 2026,
+          "note": "Thanh toán tháng 6/2026"
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4MDk1NDY5OCwiZXhwIjoxNzgxNTU5NDk4fQ.MWTPlJS3h5P2mVvXwmBrbLM5K4WkrAyZS79iNb90UHQ
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

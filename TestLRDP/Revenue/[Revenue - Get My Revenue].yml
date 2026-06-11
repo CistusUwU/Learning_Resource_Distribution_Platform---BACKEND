@@ -1,11 +1,11 @@
 info:
-  name: "[Staff - Submit Book]"
+  name: "[Revenue - Get My Revenue]"
   type: http
-  seq: 6
+  seq: 1
 
 http:
-  method: POST
-  url: "{{BaseURL}}/api/staff/books/19/submit"
+  method: GET
+  url: "{{BaseURL}}/api/staff/revenue"
   auth:
     type: bearer
     token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODA2MjA5MDcsImV4cCI6MTc4MTIyNTcwN30.ATAeJWYQbibxt7yzkUaPKc5r8CSQ8o4s_n1A6xguZTU
