@@ -18,6 +18,11 @@ export class StaffController {
         return this.staffService.getMyBooks(user.id);
     }
 
+    @Get('revenue')
+    getMyRevenue(@CurrentUser() user: { id: number }) {
+        return this.staffService.getMyRevenue(user.id);
+    }
+
     @Post('books')
     createBook(
         @CurrentUser() user: { id: number },

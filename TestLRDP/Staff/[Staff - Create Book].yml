@@ -10,12 +10,12 @@ http:
     type: json
     data: |-
       {
-          "title": "Công Nghệ Sinh Học Dược phần 1",
-          "description": "Giáo trình công nghệ sinh học dược phần 1",
+          "title": "Công Nghệ Sinh Học Dược phần 2",
+          "description": "Giáo trình công nghệ sinh học dược phần 2",
           "price": 150000,
-          "file_url": "/uploads/books/book-1780680299906-249702517.pdf",
-          "cover_image": "/uploads/covers/cover-1780640892360-326172031.png",
-          "majorIds": [5]
+          "file_url": "/uploads/books/book-1781081388994-644284415.pdf",
+          "cover_image": "/uploads/covers/cover-1781081371977-633666278.png",
+          "majorIds": [1]
       }
   auth:
     type: bearer

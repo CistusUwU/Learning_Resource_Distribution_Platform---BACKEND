@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from "@nestjs/common";
 import { Roles } from "../common/decorators/roles.decorator";
 import { UserRole } from "../common/enums/role.enum";
 import { AdminService } from "./admin.service";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { BookRejectionDto } from "../books/dto/book-rejection.dto";
+import { QueryRevenueDto } from "../revenue/dto/query-revenue.dto";
+import { CreatePayoutDto } from "../revenue/dto/create-payout.dto";
 
 @Roles(UserRole.ADMIN)
 @Controller('admin')
@@ -37,5 +39,25 @@ export class AdminController {
         @Body() dto: BookRejectionDto,
     ) {
         return this.adminService.rejectBook(user.id, bookId, dto)
+    }
+
+    @Get('revenue/stats')
+    getRevenueStats(@Query() query: QueryRevenueDto) {
+        return this.adminService.getRevenueStats(query);
+    }
+
+    @Post('revenue/payouts')
+    createPayout(@Body() dto:CreatePayoutDto) {
+        return this.adminService.createPayout(dto);
+    }
+
+    @Patch('revenue/payouts/:id/confirm')
+    confirmPayout(@Param('id') id: string) {
+        return this.adminService.confirmPayout(id);
+    }
+
+    @Get('revenue/payouts/:id/export')
+    exportCSV(@Param('id') id: string){
+        return this.adminService.exportCSV(id);
     }
 }

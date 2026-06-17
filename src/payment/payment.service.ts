@@ -78,7 +78,11 @@ export class PaymentService {
                 status: true,
                 student_id: true,
                 order_item: {
-                    select: { book_id:true }
+                    select: { 
+                        book_id:true,
+                        order_item_id: true,
+                        unit_price: true,
+                    }
                 }
             }
         });
@@ -127,6 +131,33 @@ export class PaymentService {
                         })),
                         skipDuplicates: true,
                     });
+
+                    for (const item of order.order_item) {
+                        const bookAuthor = await tx.book_author.findFirst({
+                            where: { book_id: item.book_id },
+                        });
+                        if (bookAuthor) {
+                            const sharePercent = Number(bookAuthor.revenue_share_percent ?? 70);
+                            const earnedAmount = Math.floor(Number(item.unit_price) * sharePercent / 100);
+
+                            await tx.royalty_record.create({
+                                data: {
+                                    id: `ROY-${Date.now()}-${item.book_id}`,
+                                    lecturer_id: bookAuthor.lecturer_id,
+                                    book_id: item.book_id,
+                                    order_item_id: item.order_item_id,
+                                    order_id: order.order_code,
+                                    gross_amount: Number(item.unit_price),
+                                    share_percent: sharePercent,
+                                    earned_amount: earnedAmount,
+                                    student_id: order.student_id,
+                                    status: 'PENDING',
+                                    updated_at: new Date(),
+
+                                }
+                            });
+                        }
+                    }
                 }
             });
     

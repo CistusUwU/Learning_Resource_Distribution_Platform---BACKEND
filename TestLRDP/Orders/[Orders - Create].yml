@@ -10,11 +10,11 @@ http:
     type: json
     data: |-
       {
-          "bookIds": [5]
+          "bookIds": [19]
       }
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgwMzQxNzIzLCJleHAiOjE3ODA5NDY1MjN9.r2F6QmeJbmu1mrMgftTUrCZfYLOCYPkO86DrwsZTVQM
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgxMDgwODMxLCJleHAiOjE3ODE2ODU2MzF9.gQJaNlr0dSTuiexWPMjS7Vtq54oB_TjJ__8mIgD-BDQ
 
 settings:
   encodeUrl: true
