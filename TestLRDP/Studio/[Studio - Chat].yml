@@ -1,0 +1,25 @@
+info:
+  name: "[Studio - Chat]"
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/studio/chat"
+  body:
+    type: json
+    data: |-
+      {
+          "bookId": 18,
+          "message": "Công nghệ sinh học dược là gì?",
+          "history": []
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgxNzI1NDQ4LCJleHAiOjE3ODIzMzAyNDh9.ga3YaKo2iE6jteGEeH_uJMLnasLOf4jbNqkfqoORH-Q
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

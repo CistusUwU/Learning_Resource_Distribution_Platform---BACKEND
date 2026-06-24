@@ -1,15 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 var morgan = require('morgan')
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const port = process.env.PORT ?? 3001;
+
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+  });
+
   app.setGlobalPrefix('api');
-  app.use(morgan('dev'))
+  app.use(morgan('dev'));
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
