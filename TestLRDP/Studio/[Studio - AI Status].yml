@@ -1,0 +1,17 @@
+info:
+  name: "[Studio - AI Status]"
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{BaseURL}}/api/studio/ai-status"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgxNzI1NDQ4LCJleHAiOjE3ODIzMzAyNDh9.ga3YaKo2iE6jteGEeH_uJMLnasLOf4jbNqkfqoORH-Q
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

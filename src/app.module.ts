@@ -18,6 +18,7 @@ import { StaffModule } from './staff/staff.module';
 import { AdminModule } from './admin/admin.module';
 import { RevenueModule } from './revenue/revenue.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { StudioModule } from './studio/studio.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AdminModule,
     RevenueModule,
     DashboardModule,
+    StudioModule
   ],
   controllers: [AppController],
   providers: [
