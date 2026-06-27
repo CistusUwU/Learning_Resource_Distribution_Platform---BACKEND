@@ -19,6 +19,7 @@ import { AdminModule } from './admin/admin.module';
 import { RevenueModule } from './revenue/revenue.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { StudioModule } from './studio/studio.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { StudioModule } from './studio/studio.module';
     AdminModule,
     RevenueModule,
     DashboardModule,
-    StudioModule
+    StudioModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
@@ -53,4 +55,5 @@ import { StudioModule } from './studio/studio.module';
     },
   ],
 })
-export class AppModule {} 
+export class AppModule {}
+ 

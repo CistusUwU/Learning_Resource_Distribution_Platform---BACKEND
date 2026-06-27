@@ -1,0 +1,24 @@
+info:
+  name: "[Upload - Cover]"
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{BaseURL}}/api/upload/cover"
+  body:
+    type: multipart-form
+    data:
+      - name: file
+        type: file
+        value:
+          - D:\Studi\LUANVAN2.0\Cover_Image\CNSHD1.png
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODE3MjkyMjIsImV4cCI6MTc4MjMzNDAyMn0.hKQNkMctPkHSqdgQcofY4uHk_M5jO4e3i2-OF7FseMk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
