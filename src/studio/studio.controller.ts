@@ -1,57 +1,42 @@
 import { UserRole } from "../common/enums/role.enum";
 import { StudioService } from "./studio.service";
 import { Roles } from "../common/decorators/roles.decorator";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
-import { BookIdDto, ChatDto } from "./dto/studio.dto";
+import { BookIdDto, ChatDto, GenerateDto } from "./dto/studio.dto";
 
 @Roles(UserRole.STUDENT)
 @Controller('studio')
-export class StudioController{
+export class StudioController {
     constructor(private readonly studioService: StudioService) {}
 
-    @Get('flashcards')
-    getFlashcards(
-        @CurrentUser() user: { id: number },
-        @Query() query: BookIdDto,
-    ) {
-        return this.studioService.getFlashcards(user.id, query.bookId);
+    @Post('generate')
+    generate(@CurrentUser() user: { id: number }, @Body() dto: GenerateDto) {
+        return this.studioService.generate(user.id, dto.bookId, dto.type, dto.isAuto ?? false);
     }
 
-    @Get('quiz')
-    getQuiz(
-        @CurrentUser() user: { id: number },
-        @Query() query: BookIdDto,
-    ) {
-        return this.studioService.getQuiz(user.id, query.bookId);
+    @Get('history')
+    getHistory(@CurrentUser() user: { id: number }, @Query() query: BookIdDto) {
+        return this.studioService.getHistory(user.id, query.bookId);
     }
 
-    @Get('mindmap')
-    getMindmap(
-        @CurrentUser() user: { id: number },
-        @Query() query: BookIdDto,
-    ) {
-        return this.studioService.getMindMap(user.id, query.bookId);
+    @Get('history/:id')
+    getHistoryItem(@CurrentUser() user: { id: number }, @Param('id') id: string) {
+        return this.studioService.getHistoryItem(user.id, id);
     }
+
+    @Delete('history/:id')
+    deleteHistoryItem(@CurrentUser() user: { id: number }, @Param('id') id: string) {
+        return this.studioService.deleteHistoryItem(user.id, id);
+}
 
     @Post('chat')
-    chat(
-        @CurrentUser() user: { id: number },
-        @Body() dto: ChatDto,
-    ){
+    chat(@CurrentUser() user: { id: number }, @Body() dto: ChatDto) {
         return this.studioService.chat(user.id, dto.bookId, dto.message, dto.history || []);
     }
 
-    @Delete('cache/:bookId')
-    clearCache(
-        @CurrentUser() user: { id: number },
-        @Param('bookId', ParseIntPipe) bookId: number,
-    ) {
-        return this.studioService.clearCache(user.id, bookId);
-    }
-
     @Get('ai-status')
-    getAiStatus(){
+    getAiStatus() {
         return this.studioService.getAiStatus();
     }
 }

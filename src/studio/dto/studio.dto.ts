@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsIn, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, MaxLength, ValidateNested } from "class-validator";
 
 export class BookIdDto {
     @Type(() => Number)
@@ -8,14 +8,25 @@ export class BookIdDto {
     bookId: number;
 }
 
-export class QuizDto {
+export class GenerateDto {
     @IsInt()
     @IsPositive()
-    bookId:number;
+    bookId: number;
+
+    @IsIn(['flashcard', 'quiz', 'mindmap'])
+    type: 'flashcard' | 'quiz' | 'mindmap';
 
     @IsOptional()
-    @IsIn(['multiple_choice', 'essay'])
-    type?: 'multiple_choice' | 'essay';
+    @IsBoolean()
+    isAuto?: boolean;
+}
+
+export class ChatHistoryItemDto {
+    @IsString()
+    role: string;
+
+    @IsString()
+    content: string;
 }
 
 export class ChatDto {
@@ -25,9 +36,12 @@ export class ChatDto {
 
     @IsString()
     @IsNotEmpty()
+    @MaxLength(1000)
     message: string;
 
     @IsOptional()
     @IsArray()
-    history?: Array<{ role: string; content: string }>;
+    @ValidateNested({ each: true })
+    @Type(() => ChatHistoryItemDto)
+    history?: ChatHistoryItemDto[];
 }

@@ -1,7 +1,7 @@
 info:
   name: "[Studio - Chat]"
   type: http
-  seq: 4
+  seq: 2
 
 http:
   method: POST
@@ -16,7 +16,7 @@ http:
       }
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgxNzI1NDQ4LCJleHAiOjE3ODIzMzAyNDh9.ga3YaKo2iE6jteGEeH_uJMLnasLOf4jbNqkfqoORH-Q
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzg0MDk4NTY2LCJleHAiOjE3ODQ3MDMzNjZ9.zYC_MFP4HUY2EOFLNvGaL3ElS8WOlkuQQhrgmFVrFvg
 
 settings:
   encodeUrl: true

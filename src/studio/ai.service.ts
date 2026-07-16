@@ -162,25 +162,35 @@ export class AiService {
 
     private parseQuizFromGradio(data: unknown[]): QuizItem[] {
         const questions: QuizItem[] = [];
-        for (const item of data) {
+    
+        let answers: string[] = [];
+        try {
+            const raw = typeof data[2] === 'string' ? data[2] : '[]';
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) answers = parsed as string[];
+        } catch {}
+    
+        for (let i = 3; i < data.length; i++) {
+            const item = data[i];
             if (!item || typeof item !== 'object') continue;
             const obj = item as Record<string, unknown>;
             const label = (obj.label || obj.question || '') as string;
             const choicesRaw = (obj.choices || obj.options || []) as unknown[];
-
+    
             const choices = choicesRaw.map(c =>
                 Array.isArray(c) ? String(c[0] || '') : String(c)
             ).filter(Boolean);
-
+    
             if (label && choices.length >= 2) {
+                const answerIndex = i - 3;
                 questions.push({
                     id: `q-${questions.length + 1}`,
                     question: label.replace(/^Câu\s*\d+[:.]\s*/i, '').trim(),
                     type: 'multiple_choice',
                     options: choices,
-                    answer: '',
+                    answer: answers[answerIndex] || '', 
                 });
-            } 
+            }
         }
         return questions;
     }
