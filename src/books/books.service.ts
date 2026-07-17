@@ -14,8 +14,14 @@ export class BooksService{
         private prisma: PrismaService,
     ){}
 
-    async findAll(query: BookQueryDto) {
-        const { search, categoryId, page = 1, limit = 50 } = query;
+    async findAll(query: BookQueryDto, userId: number) {
+        const { search, 
+                categoryId, 
+                page = 1, 
+                limit = 50, 
+                sortBy = 'created_at', 
+                sortOrder = 'desc', 
+                purchaseFilter = 'all' } = query;
         const skip = (page - 1) * limit;
         const where: Prisma.bookWhereInput = {};
         where.approval_status = book_approval_status.APPROVED;
@@ -29,6 +35,12 @@ export class BooksService{
                { title: { contains: search } },
                { description: { contains: search } }
             ];
+        }
+
+        if (purchaseFilter === 'purchased') {
+            where.library = { some: { student_id: userId } };
+        } else if (purchaseFilter === 'unpurchased') {
+            where.library = { none: { student_id: userId } };
         }
 
         const [books, total] = await Promise.all([
@@ -62,28 +74,31 @@ export class BooksService{
                             }
                         }
                     },
-                    library: {
+                    library: { 
+                        where: { 
+                            student_id: userId 
+                        }, 
                         select: { 
-                            student_id: true 
-                        }
-                      },
+                            library_id: true 
+                        } 
+                    },
                 },  
                 skip,
                 take: limit,
-                orderBy: { created_at: 'desc' },
+                orderBy: { [sortBy]: sortOrder },
             }),
             this.prisma.book.count({ where }),
         ]);
 
         return {
-            books,
+            books: books.map((b) => ({ ...b, is_owned: b.library.length > 0, library: undefined })),
             total,
             page,
             limit,
         };
     }
 
-    async findOne(id: number) {
+    async findOne(id: number, userId: number) {
         const book = await this.prisma.book.findUnique({
             where: { 
                 book_id: id 
@@ -117,9 +132,12 @@ export class BooksService{
                         }
                     }
                 },
-                library:{
+                library: {
+                    where: {
+                        student_id: userId
+                    },
                     select: {
-                        student_id: true
+                        library_id: true
                     }
                 },
                 book_version_history: {
@@ -133,7 +151,8 @@ export class BooksService{
 
         if (!book) throw new NotFoundException(`Book with ID ${id} not found`);
 
-        return book;
+        const { library, ...rest } = book;
+        return { ...rest, is_owned: library.length > 0 };
     }
 
     async findBooksByLecturer(lecturerId: number) {

@@ -8,7 +8,7 @@ http:
   url: "{{BaseURL}}/api/categories"
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODAzNDE4MDEsImV4cCI6MTc4MDk0NjYwMX0.iTceEYcrduCWpOmRz3wmH7yBtZLei0cTEBSqZvvfu4s
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzg0Mjc2NzY1LCJleHAiOjE3ODQ4ODE1NjV9.3esBSoQDQrn2Dg2P6Yw0The4o6fKKB6Qe0MGDY08750
 
 settings:
   encodeUrl: true

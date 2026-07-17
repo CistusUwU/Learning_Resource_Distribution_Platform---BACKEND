@@ -8,7 +8,7 @@ http:
   url: "{{BaseURL}}/api/books"
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4MDM0MTgxNSwiZXhwIjoxNzgwOTQ2NjE1fQ.Pk1fdVnZKZuNkG_wf0iDHBmKEiogB6idpCBW7jZdOmI
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NDIzODk0OCwiZXhwIjoxNzg0ODQzNzQ4fQ.rqlDCSz74v1VxBzrcHXjWZUiEEqGGilrCQEnJwQuUxA
 
 settings:
   encodeUrl: true
