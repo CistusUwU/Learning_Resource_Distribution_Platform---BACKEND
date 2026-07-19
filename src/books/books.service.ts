@@ -6,6 +6,7 @@ import { CreateBookDto } from "./dto/create-book.dto";
 import { UpdateBookDto } from "./dto/update-book.dto";
 import { SubmitBookDto } from "./dto/submit-book.dto";
 import { BookRejectionDto } from "./dto/book-rejection.dto";
+import { UserRole } from "src/common/enums/role.enum";
 
 
 @Injectable()
@@ -98,7 +99,7 @@ export class BooksService{
         };
     }
 
-    async findOne(id: number, userId: number) {
+    async findOne(id: number, userId: number, role: UserRole) {
         const book = await this.prisma.book.findUnique({
             where: { 
                 book_id: id 
@@ -152,7 +153,9 @@ export class BooksService{
         if (!book) throw new NotFoundException(`Book with ID ${id} not found`);
 
         const { library, ...rest } = book;
-        return { ...rest, is_owned: library.length > 0 };
+        const isOwned = library.length > 0;
+        const canAccessFile = role !== UserRole.STUDENT || isOwned;
+        return { ...rest, file_url: canAccessFile ? rest.file_url : null, is_owned: isOwned };
     }
 
     async findBooksByLecturer(lecturerId: number) {

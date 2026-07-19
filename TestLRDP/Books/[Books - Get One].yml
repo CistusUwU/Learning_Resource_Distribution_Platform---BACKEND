@@ -1,0 +1,17 @@
+info:
+  name: "[Books - Get One]"
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{BaseURL}}/api/books"
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NDIzODk0OCwiZXhwIjoxNzg0ODQzNzQ4fQ.rqlDCSz74v1VxBzrcHXjWZUiEEqGGilrCQEnJwQuUxA
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
