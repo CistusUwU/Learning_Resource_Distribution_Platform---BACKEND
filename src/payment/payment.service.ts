@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { order_status, payment_method, payment_status } from "@prisma/client";
 import { VNPayHelper } from "./helpers/vnpay.helper";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
 export class PaymentService {
@@ -11,17 +12,18 @@ export class PaymentService {
         private readonly config: ConfigService,
     ) {}
 
-    async createPaymentUrl(orderCode: string, ipAddr: string): Promise<string> {
+    async createPaymentUrl(orderCode: string, ipAddr: string, userId: number): Promise<string> {
         const order = await this.prisma.order.findUnique({
             where: { order_code: orderCode },
             select: {
                 order_code: true,
                 total_amount: true,
                 status: true,
+                student_id: true,
             }
         });
         
-        if (!order) {
+        if (!order || order.student_id !== userId) {
             throw new NotFoundException('Không tìm thấy đơn hàng');
         }
 
@@ -178,5 +180,30 @@ export class PaymentService {
             amount: parseInt(query['vnp_Amount'] ?? '0') / 100,
             responseCode: query['vnp_ResponseCode'],
         }
+    }
+
+    @Cron(CronExpression.EVERY_5_MINUTES)
+    async expirePendingOrders() {
+        const cutoff = new Date(Date.now() - 15 * 60 * 1000);
+
+        const expiredOrders = await this.prisma.order.findMany({
+            where: {
+                status: order_status.PENDING,
+                payment: {
+                    updatedAt: { lt: cutoff },
+                },
+            },
+            select: { order_id: true },
+        });
+
+        if (expiredOrders.length === 0) return;
+
+        await this.prisma.order.updateMany({
+            where: { 
+                order_id: { in: expiredOrders.map((o) => o.order_id) },
+                status: order_status.PENDING, 
+            },
+            data: { status: order_status.CANCELLED },
+        });
     }
 }
