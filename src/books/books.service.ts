@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookQueryDto } from "./dto/book-query.dto";
-import { book_approval_status, book_version_history_status, Prisma } from "@prisma/client";
+import { book_approval_status, book_version_history_status, order_status, Prisma } from "@prisma/client";
 import { CreateBookDto } from "./dto/create-book.dto";
 import { UpdateBookDto } from "./dto/update-book.dto";
 import { SubmitBookDto } from "./dto/submit-book.dto";
@@ -22,7 +22,80 @@ export class BooksService{
                 limit = 50, 
                 sortBy = 'created_at', 
                 sortOrder = 'desc', 
-                purchaseFilter = 'all' } = query;
+                purchaseFilter = 'all',
+                ids } = query;
+
+        const bookSelect = {
+            book_id: true,
+            title: true,
+            description: true,
+            price: true,
+            cover_image: true,
+            pages: true,
+            created_at: true,
+            book_author: {
+                select: {
+                    lecturer: {
+                        select: {
+                            full_name: true,
+                        }
+                    }
+                }
+            },
+            book_major: {
+                select: {
+                    major: {
+                        select: {
+                            major_id: true,
+                            major_name: true,
+                            major_code: true,
+                        }
+                    }
+                }
+            },
+            library: {
+                where: {
+                    student_id: userId
+                },
+                select: {
+                    library_id: true
+                }
+            },
+            order_item: {
+                where: {
+                    order: {
+                        student_id: userId,
+                        status: order_status.PENDING,
+                    }
+                },
+                select: {
+                    order_item_id: true
+                }
+            },
+        } as const;
+
+        if (ids && ids.length > 0) {
+            const books = await this.prisma.book.findMany({
+                where: {
+                    book_id: { in: ids },
+                    approval_status: book_approval_status.APPROVED,
+                },
+                select: bookSelect,
+            });
+
+            return {
+                books: books.map((b) => ({
+                    ...b,
+                    is_owned: b.library.length > 0,
+                    has_pending_order: b.order_item.length > 0,
+                    library: undefined,
+                    order_item: undefined,
+                })),
+                total: books.length,
+                page: 1,
+                limit: books.length,
+            };
+        }
         const skip = (page - 1) * limit;
         const where: Prisma.bookWhereInput = {};
         where.approval_status = book_approval_status.APPROVED;
@@ -34,7 +107,8 @@ export class BooksService{
         if (search){
             where.OR = [
                { title: { contains: search } },
-               { description: { contains: search } }
+               { description: { contains: search } },
+               { book_author: { some: { lecturer: { full_name: { contains: search } } } } },
             ];
         }
 
@@ -47,43 +121,7 @@ export class BooksService{
         const [books, total] = await Promise.all([
             this.prisma.book.findMany({
                 where,
-                select: {
-                    book_id: true,
-                    title: true,
-                    description: true,
-                    price: true,
-                    cover_image: true,
-                    pages: true,
-                    created_at: true,
-                    book_author: {
-                        select: { 
-                            lecturer: {
-                                select: { 
-                                    full_name: true,
-                                }
-                            }
-                        }
-                    },
-                    book_major: {
-                        select: {
-                            major: {
-                                select: {
-                                    major_id: true,
-                                    major_name: true,
-                                    major_code: true,
-                                }
-                            }
-                        }
-                    },
-                    library: { 
-                        where: { 
-                            student_id: userId 
-                        }, 
-                        select: { 
-                            library_id: true 
-                        } 
-                    },
-                },  
+                select: bookSelect,
                 skip,
                 take: limit,
                 orderBy: { [sortBy]: sortOrder },
@@ -92,7 +130,13 @@ export class BooksService{
         ]);
 
         return {
-            books: books.map((b) => ({ ...b, is_owned: b.library.length > 0, library: undefined })),
+            books: books.map((b) => ({
+                ...b,
+                is_owned: b.library.length > 0,
+                has_pending_order: b.order_item.length > 0,
+                library: undefined,
+                order_item: undefined,
+            })),
             total,
             page,
             limit,
