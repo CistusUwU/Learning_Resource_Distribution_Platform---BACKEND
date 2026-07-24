@@ -5,10 +5,10 @@ info:
 
 http:
   method: POST
-  url: "{{BaseURL}}/api/payment/create/ORD-1781081565226-5"
+  url: "{{BaseURL}}/api/payment/create/ORD-1784475440113-5"
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzgxMDgwODMxLCJleHAiOjE3ODE2ODU2MzF9.gQJaNlr0dSTuiexWPMjS7Vtq54oB_TjJ__8mIgD-BDQ
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoic3YwMDFAc2Nob29sLmVkdS52biIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzg0NDczOTEwLCJleHAiOjE3ODUwNzg3MTB9.HtDW7t8W8S7sIJtW33-BxSvO72m2Oy5OkzTUH4UFV48
 
 settings:
   encodeUrl: true

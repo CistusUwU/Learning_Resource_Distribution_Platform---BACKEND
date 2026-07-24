@@ -5,10 +5,10 @@ info:
 
 http:
   method: PATCH
-  url: "{{BaseURL}}/api/admin/books/19/approve"
+  url: "{{BaseURL}}/api/admin/books/20/approve"
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4MTA4MTUyNiwiZXhwIjoxNzgxNjg2MzI2fQ.Tejdnj4Bizb_k74qPDc8lRWbwLlDvnnArd7a1p1WM-Q
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5Ac2Nob29sLmVkdS52biIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NDQ3MjE0NCwiZXhwIjoxNzg1MDc2OTQ0fQ.s3L9R0jip6uJFqAUOoZkFQYa6e7qZdCu4oOGcOhR2lE
 
 settings:
   encodeUrl: true

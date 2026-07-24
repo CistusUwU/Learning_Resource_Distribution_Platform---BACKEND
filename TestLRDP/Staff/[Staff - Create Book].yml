@@ -10,16 +10,16 @@ http:
     type: json
     data: |-
       {
-          "title": "Công Nghệ Sinh Học Dược phần 2",
-          "description": "Giáo trình công nghệ sinh học dược phần 2",
+          "title": "Giải Phẫu Người",
+          "description": "Giải Phẫu Người là giáo trình nền tảng dành cho sinh viên khối ngành Khoa học Sức khỏe, cung cấp kiến thức toàn diện về cấu trúc cơ thể người theo hướng hiện đại và hệ thống. Nội dung được biên soạn từ cơ bản đến nâng cao, kết hợp giữa giải phẫu đại thể, mô học và các mối liên hệ lâm sàng, giúp người học hiểu rõ hình thái, vị trí và chức năng của từng cơ quan trong cơ thể.",
           "price": 150000,
-          "file_url": "/uploads/books/book-1781081388994-644284415.pdf",
-          "cover_image": "/uploads/covers/cover-1781081371977-633666278.png",
-          "majorIds": [1]
+          "file_url": "/uploads/books/book-1784472021130-112216773.pdf",
+          "cover_image": "/uploads/covers/cover-1784471246932-787422708.png",
+          "majorIds": [7]
       }
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODA2MjA5MDcsImV4cCI6MTc4MTIyNTcwN30.ATAeJWYQbibxt7yzkUaPKc5r8CSQ8o4s_n1A6xguZTU
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODQ0Njk3ODcsImV4cCI6MTc4NTA3NDU4N30.XrwTGfHyGbjvh-ayV6PU3uHbqtj88mAZ1n6LfVjWcGU
 
 settings:
   encodeUrl: true

@@ -5,10 +5,10 @@ info:
 
 http:
   method: POST
-  url: "{{BaseURL}}/api/staff/books/19/submit"
+  url: "{{BaseURL}}/api/staff/books/20/submit"
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODA2MjA5MDcsImV4cCI6MTc4MTIyNTcwN30.ATAeJWYQbibxt7yzkUaPKc5r8CSQ8o4s_n1A6xguZTU
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiZ3YxQHNjaG9vbC5lZHUudm4iLCJyb2xlIjoiU1RBRkYiLCJpYXQiOjE3ODQ0Njk3ODcsImV4cCI6MTc4NTA3NDU4N30.XrwTGfHyGbjvh-ayV6PU3uHbqtj88mAZ1n6LfVjWcGU
 
 settings:
   encodeUrl: true
