@@ -7,7 +7,8 @@ import { UpdateBookDto } from "./dto/update-book.dto";
 import { SubmitBookDto } from "./dto/submit-book.dto";
 import { BookRejectionDto } from "./dto/book-rejection.dto";
 import { UserRole } from "src/common/enums/role.enum";
-
+import * as fs from "fs";
+import { join } from "path";
 
 @Injectable()
 export class BooksService{
@@ -200,6 +201,35 @@ export class BooksService{
         const isOwned = library.length > 0;
         const canAccessFile = role !== UserRole.STUDENT || isOwned;
         return { ...rest, file_url: canAccessFile ? rest.file_url : null, is_owned: isOwned };
+    }
+    
+    async getBookFileStream(id: number, userId: number, role: UserRole) {
+        const book = await this.prisma.book.findUnique({
+            where: { book_id: id },
+            select: {
+                file_url: true,
+                library: {
+                    where: { student_id: userId },
+                    select: { library_id: true },
+                },
+            },
+        });
+
+        if (!book) throw new NotFoundException(`Book with ID ${id} not found`);
+
+        const isOwned = book.library.length > 0;
+        const canAccessFile = role !== UserRole.STUDENT || isOwned;
+        if (!canAccessFile) throw new NotFoundException(`Book with ID ${id} not found`);
+
+        if (!book.file_url) throw new NotFoundException('Sách chưa có file PDF');
+
+        const filePath = join(process.cwd(), book.file_url);
+        if (!fs.existsSync(filePath)) throw new NotFoundException('Không tìm thấy file PDF trên hệ thống');
+
+        return {
+            stream: fs.createReadStream(filePath),
+            filename: `book-${id}.pdf`,
+        };
     }
 
     async findBooksByLecturer(lecturerId: number) {
