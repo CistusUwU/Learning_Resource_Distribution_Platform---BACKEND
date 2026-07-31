@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -72,5 +72,39 @@ export class LibraryService {
         if (!item) throw new NotFoundException('Sách không có trong thư viện');
     
         return item;
+    }
+
+    async updateProgress(userId: number, bookId: number, page: number) {
+        const item = await this.prisma.library.findFirst({
+            where: {
+                student_id: userId,
+                book_id: bookId,
+            },
+            select: {
+                library_id: true,
+                book: {
+                    select: {
+                        pages: true,
+                    }
+                }
+            },
+        });
+
+        if (!item) throw new NotFoundException('Sách không có trong thư viện');
+
+        const totalPages = item.book.pages;
+        const clampedPage = totalPages ? Math.min(page, totalPages) : page;
+
+        return this.prisma.library.update({
+            where: { library_id: item.library_id },
+            data: {
+                reading_progress: clampedPage,
+                last_accessed: new Date(),
+            },
+            select: {
+                reading_progress: true,
+                last_accessed: true,
+            },
+        });
     }
 }
