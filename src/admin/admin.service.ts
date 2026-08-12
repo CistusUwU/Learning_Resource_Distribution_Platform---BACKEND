@@ -5,6 +5,7 @@ import { BookRejectionDto } from "../books/dto/book-rejection.dto";
 import { QueryRevenueDto } from "../revenue/dto/query-revenue.dto";
 import { RevenueService } from "../revenue/revenue.service";
 import { CreatePayoutDto } from "../revenue/dto/create-payout.dto";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
 
 @Injectable()
 export class AdminService {
@@ -14,8 +15,8 @@ export class AdminService {
         private readonly revenueService: RevenueService
     ) {}
 
-    async getPendingBooks() {
-        return this.booksService.getPendingBook();
+    async getPendingBooks(query: PaginationQueryDto) {
+        return this.booksService.getPendingBook(query);
     }
 
     async approveBook(userId: number, bookId: number){

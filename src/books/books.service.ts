@@ -7,8 +7,11 @@ import { UpdateBookDto } from "./dto/update-book.dto";
 import { SubmitBookDto } from "./dto/submit-book.dto";
 import { BookRejectionDto } from "./dto/book-rejection.dto";
 import { UserRole } from "src/common/enums/role.enum";
+import { PaginationQueryDto } from "../common/dto/pagination-query.dto";
+import { paginate } from "../common/utils/paginate.util";
 import * as fs from "fs";
 import { join } from "path";
+import { StaffBookQueryDto } from "src/staff/dto/staff-book-query.dto";
 
 @Injectable()
 export class BooksService{
@@ -232,39 +235,53 @@ export class BooksService{
         };
     }
 
-    async findBooksByLecturer(lecturerId: number) {
-        return this.prisma.book.findMany({
-            where: {
-                book_author: {
-                    some: {
-                        lecturer_id: lecturerId
-                    }
-                }    
-            },
-            select: {
-                book_id: true,
-                title: true,
-                price: true,
-                file_url: true,
-                cover_image: true,
-                approval_status: true,
-                submitted_at: true,
-                approved_at: true,
-                rejection_reason: true,
-                created_at: true,
-                book_major: {
-                    select: {
-                        major: {
-                            select: {
-                                major_id: true,
-                                major_name: true,
+    async findBooksByLecturer(lecturerId: number, query: StaffBookQueryDto) {
+        const { page = 1, limit = 10, status } = query;
+        const where: Prisma.bookWhereInput = {
+            book_author: {
+                some: {
+                    lecturer_id: lecturerId
+                }
+            }
+        };
+    
+        if (status) {
+            where.approval_status = status;
+        }
+    
+        return paginate(
+            (skip, take) => this.prisma.book.findMany({
+                where,
+                select: {
+                    book_id: true,
+                    title: true,
+                    price: true,
+                    file_url: true,
+                    cover_image: true,
+                    approval_status: true,
+                    submitted_at: true,
+                    approved_at: true,
+                    rejection_reason: true,
+                    created_at: true,
+                    book_major: {
+                        select: {
+                            major: {
+                                select: {
+                                    major_id: true,
+                                    major_name: true,
+                                }
                             }
                         }
                     }
-                }
-            },
-            orderBy: { created_at: 'desc' },
-        })
+                },
+                orderBy: { created_at: 'desc' },
+                skip,
+                take,
+            }),
+            () => this.prisma.book.count({ where }),
+            page,
+            limit,
+        );
     }
 
     async createBook(lecturerId: number, dto: CreateBookDto){
@@ -487,52 +504,62 @@ export class BooksService{
         })
     }
 
-    async getPendingBook(){
-        return this.prisma.book.findMany({
-            where: {
-                approval_status: book_approval_status.PENDING
-            },
-            select:{
-                book_id: true,
-                title: true,
-                description: true,
-                price: true,
-                cover_image: true,
-                file_url: true,
-                submitted_at: true,
-                created_at: true,
-                book_author: {
-                    select: {
-                        lecturer: {
-                            select: {
-                                full_name: true,
-                                lecturer_code: true,
+    async getPendingBook(query: PaginationQueryDto){
+        const { page = 1, limit = 10 } = query;
+        const where: Prisma.bookWhereInput = {
+            approval_status: book_approval_status.PENDING
+        };
+    
+        return paginate(
+            (skip, take) => this.prisma.book.findMany({
+                where,
+                select:{
+                    book_id: true,
+                    title: true,
+                    description: true,
+                    price: true,
+                    cover_image: true,
+                    file_url: true,
+                    submitted_at: true,
+                    created_at: true,
+                    book_author: {
+                        select: {
+                            lecturer: {
+                                select: {
+                                    full_name: true,
+                                    lecturer_code: true,
+                                }
                             }
+                        }
+                    },
+                    book_major: {
+                        select: {
+                            major: {
+                                select: {
+                                    major_id: true,
+                                    major_code: true,
+                                }
+                            }
+                        }
+                    },
+                    book_version_history: {
+                        orderBy: { submitted_at: 'desc' },
+                        take: 1,
+                        select: {
+                            version_number: true,
+                            change_log: true,
+                            submitted_at: true,
                         }
                     }
                 },
-                book_major: {
-                    select: {
-                        major: {
-                            select: {
-                                major_id: true,
-                                major_code: true,
-                            }
-                        }
-                    }
-                },
-                book_version_history: {
-                    orderBy: { submitted_at: 'desc' },
-                    take: 1,
-                    select: {
-                        version_number: true,
-                        change_log: true,
-                        submitted_at: true,
-                    }
-                }
-            },
-            orderBy: { submitted_at: 'asc' },
-        });
+                orderBy: { submitted_at: 'asc' },
+                skip,
+                take,
+            }),
+            () => this.prisma.book.count({ where }),
+            page,
+            limit,
+        );
     }
 
     async approveBook(userId: number, bookId: number) {

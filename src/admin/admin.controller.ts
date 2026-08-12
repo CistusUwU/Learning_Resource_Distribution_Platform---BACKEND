@@ -6,14 +6,15 @@ import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { BookRejectionDto } from "../books/dto/book-rejection.dto";
 import { QueryRevenueDto } from "../revenue/dto/query-revenue.dto";
 import { CreatePayoutDto } from "../revenue/dto/create-payout.dto";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
 
 @Roles(UserRole.ADMIN)
 @Controller('admin')
 export class AdminController {
     constructor(private readonly adminService: AdminService) {}
     @Get('books/pending')
-    getPendingBook() {
-        return this.adminService.getPendingBooks();
+    getPendingBook(@Query() query: PaginationQueryDto) {
+        return this.adminService.getPendingBooks(query);
     }
 
     @Patch('books/approve-multiple')

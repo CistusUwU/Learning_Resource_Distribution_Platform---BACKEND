@@ -2,6 +2,9 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { PrismaService } from "../prisma/prisma.service";
 import { book_approval_status, order_status } from "@prisma/client";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
+import { paginate } from "src/common/utils/paginate.util";
+import { OrderQueryDto } from "src/orders/dto/order-query.dto";
 @Injectable()
 export class OrdersService {
     constructor(private prisma: PrismaService){}
@@ -97,30 +100,44 @@ export class OrdersService {
         return order;
     }
 
-    async getUserOrders(userId: number) {
-        return this.prisma.order.findMany({
-            where: { student_id: userId },
-            select: {
-                order_id: true,
-                order_code: true,
-                total_amount: true,
-                status: true,
-                created_at: true,
-                order_item: {
-                    select: {
-                        book_id: true,
-                        unit_price: true,
-                        quantity: true,
-                        book: {
-                            select: {
-                                title: true,
-                                cover_image: true,
+    async getUserOrders(userId: number, query: OrderQueryDto) {
+        const { page = 1, limit = 10, status } = query;
+        const where: { student_id: number; status?: order_status } = { student_id: userId };
+    
+        if (status) {
+            where.status = status;
+        }
+    
+        return paginate(
+            (skip, take) => this.prisma.order.findMany({
+                where,
+                select: {
+                    order_id: true,
+                    order_code: true,
+                    total_amount: true,
+                    status: true,
+                    created_at: true,
+                    order_item: {
+                        select: {
+                            book_id: true,
+                            unit_price: true,
+                            quantity: true,
+                            book: {
+                                select: {
+                                    title: true,
+                                    cover_image: true,
+                                }
                             }
                         }
                     }
-                }
-            },
-            orderBy: { created_at: 'desc' },
-        });
+                },
+                orderBy: { created_at: 'desc' },
+                skip,
+                take,
+            }),
+            () => this.prisma.order.count({ where }),
+            page,
+            limit,
+        );
     }
 }
