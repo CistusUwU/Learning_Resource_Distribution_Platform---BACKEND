@@ -8,10 +8,11 @@ import { SubmitBookDto } from "./dto/submit-book.dto";
 import { BookRejectionDto } from "./dto/book-rejection.dto";
 import { UserRole } from "src/common/enums/role.enum";
 import { PaginationQueryDto } from "../common/dto/pagination-query.dto";
+import { StaffBookQueryDto } from "../staff/dto/staff-book-query.dto";
 import { paginate } from "../common/utils/paginate.util";
 import * as fs from "fs";
 import { join } from "path";
-import { StaffBookQueryDto } from "src/staff/dto/staff-book-query.dto";
+import { AdminBookQueryDto } from "../admin/dto/admin-book-query.dto";
 
 @Injectable()
 export class BooksService{
@@ -103,6 +104,7 @@ export class BooksService{
         const skip = (page - 1) * limit;
         const where: Prisma.bookWhereInput = {};
         where.approval_status = book_approval_status.APPROVED;
+        where.is_archived = false;
 
         if (categoryId) {
             where.book_major = { some: {major_id: categoryId } };
@@ -244,17 +246,18 @@ export class BooksService{
                 }
             }
         };
-    
+
         if (status) {
             where.approval_status = status;
         }
-    
+
         return paginate(
             (skip, take) => this.prisma.book.findMany({
                 where,
                 select: {
                     book_id: true,
                     title: true,
+                    description: true,
                     price: true,
                     file_url: true,
                     cover_image: true,
@@ -410,6 +413,12 @@ export class BooksService{
             throw new BadRequestException('Không thể submit sách ở trạng thái này');
         }
 
+        const lecturer = await this.prisma.lecturer.findUnique({
+            where: { user_id: lecturerId },
+            select: { is_admin: true },
+        });
+        const isAdmin = lecturer?.is_admin ?? false;
+
         const versionCount = await this.prisma.book_version_history.count({
             where: {
                 book_id: bookId,
@@ -426,10 +435,17 @@ export class BooksService{
                 where: {
                     book_id: bookId
                 },
-                data: {
-                    approval_status: book_approval_status.PENDING,
-                    submitted_at: new Date(),
-                },
+                data: isAdmin
+                    ? {
+                        approval_status: book_approval_status.APPROVED,
+                        submitted_at: new Date(),
+                        approved_by_id: lecturerId,
+                        approved_at: new Date(),
+                    }
+                    : {
+                        approval_status: book_approval_status.PENDING,
+                        submitted_at: new Date(),
+                    },
                 select: {
                     book_id: true,
                     title: true,
@@ -443,13 +459,23 @@ export class BooksService{
             });
 
             await tx.book_version_history.create({
-                data: {
-                    book_id: bookId,
-                    version_number: versionNumber,
-                    status: book_version_history_status.PENDING,
-                    change_log: dto.change_log,
-                    submitted_at: new Date(),
-                },
+                data: isAdmin
+                    ? {
+                        book_id: bookId,
+                        version_number: versionNumber,
+                        status: book_version_history_status.APPROVED,
+                        change_log: dto.change_log,
+                        submitted_at: new Date(),
+                        reviewed_by_id: lecturerId,
+                        reviewed_at: new Date(),
+                    }
+                    : {
+                        book_id: bookId,
+                        version_number: versionNumber,
+                        status: book_version_history_status.PENDING,
+                        change_log: dto.change_log,
+                        submitted_at: new Date(),
+                    },
             });
 
             return updated;
@@ -509,7 +535,7 @@ export class BooksService{
         const where: Prisma.bookWhereInput = {
             approval_status: book_approval_status.PENDING
         };
-    
+
         return paginate(
             (skip, take) => this.prisma.book.findMany({
                 where,
@@ -707,5 +733,83 @@ export class BooksService{
 
             return { success: true };
         });
+    }
+
+    async getAdminManagedBooks(query: AdminBookQueryDto) {
+        const { page = 1, limit = 10, search, status } = query;
+        const where: Prisma.bookWhereInput = {
+            approval_status: status
+                ? status
+                : { in: [book_approval_status.APPROVED, book_approval_status.PENDING] },
+        };
+
+        if (search) {
+            where.OR = [
+               { title: { contains: search } },
+               { description: { contains: search } },
+               { book_author: { some: { lecturer: { full_name: { contains: search } } } } },
+            ];
+        }
+
+        return paginate(
+            (skip, take) => this.prisma.book.findMany({
+                where,
+                select: {
+                    book_id: true,
+                    title: true,
+                    description: true,
+                    price: true,
+                    cover_image: true,
+                    file_url: true,
+                    approval_status: true,
+                    is_archived: true,
+                    submitted_at: true,
+                    approved_at: true,
+                    created_at: true,
+                    book_author: {
+                        select: {
+                            lecturer: {
+                                select: {
+                                    full_name: true,
+                                    lecturer_code: true,
+                                }
+                            }
+                        }
+                    },
+                    book_major: {
+                        select: {
+                            major: {
+                                select: {
+                                    major_id: true,
+                                    major_code: true,
+                                }
+                            }
+                        }
+                    },
+                },
+                orderBy: { submitted_at: 'desc' },
+                skip,
+                take,
+            }),
+            () => this.prisma.book.count({ where }),
+            page,
+            limit,
+        );
+    }
+
+    async toggleArchive(bookId: number) {
+        const book = await this.prisma.book.findUnique({
+            where: { book_id: bookId },
+            select: { is_archived: true },
+        });
+
+        if (!book) throw new NotFoundException('Không tìm thấy sách');
+
+        await this.prisma.book.update({
+            where: { book_id: bookId },
+            data: { is_archived: !book.is_archived },
+        });
+
+        return { success: true };
     }
 }

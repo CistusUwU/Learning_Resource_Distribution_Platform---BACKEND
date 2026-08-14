@@ -7,6 +7,7 @@ import { BookRejectionDto } from "../books/dto/book-rejection.dto";
 import { QueryRevenueDto } from "../revenue/dto/query-revenue.dto";
 import { CreatePayoutDto } from "../revenue/dto/create-payout.dto";
 import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
+import { AdminBookQueryDto } from "src/admin/dto/admin-book-query.dto";
 
 @Roles(UserRole.ADMIN)
 @Controller('admin')
@@ -15,6 +16,16 @@ export class AdminController {
     @Get('books/pending')
     getPendingBook(@Query() query: PaginationQueryDto) {
         return this.adminService.getPendingBooks(query);
+    }
+
+    @Get('books')
+    getManagedBooks(@Query() query: AdminBookQueryDto) {
+        return this.adminService.getManagedBooks(query);
+    }
+
+    @Patch('books/:bookId/archive')
+    toggleArchive(@Param('bookId', ParseIntPipe) bookId: number) {
+        return this.adminService.toggleArchive(bookId);
     }
 
     @Patch('books/approve-multiple')
