@@ -3,6 +3,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { QueryRevenueDto } from "./dto/query-revenue.dto";
 import { payout_batch_status, Prisma, royalty_record_status } from "@prisma/client";
 import { CreatePayoutDto } from "./dto/create-payout.dto";
+import { PaginationQueryDto } from "../common/dto/pagination-query.dto";
+import { paginate } from "../common/utils/paginate.util";
 
 @Injectable()
 export class RevenueService {
@@ -52,7 +54,7 @@ export class RevenueService {
     }
 
     async getStats(query: QueryRevenueDto) {
-        const { month, quarter, year } = query;
+        const { month, quarter, year, page = 1, limit = 10 } = query;
 
         const where: Prisma.royalty_recordWhereInput = {};
 
@@ -93,6 +95,7 @@ export class RevenueService {
         });
 
         const grouped = new Map<number, {
+            lecturer_id: number;
             lecturer: { 
                 full_name: string; lecturer_code: string 
             };
@@ -104,6 +107,7 @@ export class RevenueService {
 
         for (const record of records) {
             const existing = grouped.get(record.lecturer_id) ?? {
+                lecturer_id: record.lecturer_id,
                 lecturer: record.lecturer,
                 totalEarned: 0,
                 totalPending: 0,
@@ -119,8 +123,83 @@ export class RevenueService {
             grouped.set(record.lecturer_id, existing);
         }
 
-        return Array.from(grouped.values())
+        const allResults = Array.from(grouped.values())
             .sort((a, b) => b.totalPending - a.totalPending);
+
+        const total = allResults.length;
+        const skip = (page - 1) * limit;
+        const items = allResults.slice(skip, skip + limit);
+
+        return {
+            items,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
+    async getLecturerTransactions(lecturerId: number, query: PaginationQueryDto) {
+        const { page = 1, limit = 10 } = query;
+        const where: Prisma.royalty_recordWhereInput = { lecturer_id: lecturerId };
+
+        return paginate(
+            (skip, take) => this.prisma.royalty_record.findMany({
+                where,
+                select: {
+                    id: true,
+                    gross_amount: true,
+                    share_percent: true,
+                    earned_amount: true,
+                    status: true,
+                    created_at: true,
+                    paid_at: true,
+                    book: {
+                        select: {
+                            book_id: true,
+                            title: true,
+                        }
+                    },
+                    student: {
+                        select: {
+                            full_name: true,
+                            student_code: true,
+                        }
+                    },
+                },
+                orderBy: { created_at: 'desc' },
+                skip,
+                take,
+            }),
+            () => this.prisma.royalty_record.count({ where }),
+            page,
+            limit,
+        );
+    }
+
+    async getPayoutBatches(query: PaginationQueryDto) {
+        const { page = 1, limit = 10 } = query;
+
+        return paginate(
+            (skip, take) => this.prisma.payout_batch.findMany({
+                select: {
+                    id: true,
+                    month: true,
+                    year: true,
+                    total_amount: true,
+                    status: true,
+                    note: true,
+                    processed_at: true,
+                    created_at: true,
+                },
+                orderBy: { created_at: 'desc' },
+                skip,
+                take,
+            }),
+            () => this.prisma.payout_batch.count(),
+            page,
+            limit,
+        );
     }
 
     async createPayout(dto: CreatePayoutDto) {

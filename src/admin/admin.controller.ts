@@ -58,6 +58,19 @@ export class AdminController {
         return this.adminService.getRevenueStats(query);
     }
 
+    @Get('revenue/lecturers/:lecturerId/transactions')
+    getLecturerTransactions(
+        @Param('lecturerId', ParseIntPipe) lecturerId: number,
+        @Query() query: PaginationQueryDto,
+    ) {
+        return this.adminService.getLecturerTransactions(lecturerId, query);
+    }
+
+    @Get('revenue/payouts')
+    getPayoutBatches(@Query() query: PaginationQueryDto) {
+        return this.adminService.getPayoutBatches(query);
+    }
+
     @Post('revenue/payouts')
     createPayout(@Body() dto:CreatePayoutDto) {
         return this.adminService.createPayout(dto);

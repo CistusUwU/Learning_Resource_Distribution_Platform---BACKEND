@@ -44,6 +44,14 @@ export class AdminService {
         return this.revenueService.getStats(query);
     }
 
+    async getLecturerTransactions(lecturerId: number, query: PaginationQueryDto) {
+        return this.revenueService.getLecturerTransactions(lecturerId, query);
+    }
+
+    async getPayoutBatches(query: PaginationQueryDto) {
+        return this.revenueService.getPayoutBatches(query);
+    }
+
     async createPayout(dto: CreatePayoutDto) {
         return this.revenueService.createPayout(dto);
     }
