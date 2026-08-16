@@ -13,8 +13,14 @@ export class DashboardController {
     getAdminDashboard() {
         return this.dashboardService.getAdminDashboard();
     }
+    
+    @Roles(UserRole.ADMIN)
+    @Get('admin/revenue-trend')
+    getAdminRevenueTrend() {
+        return this.dashboardService.getAdminRevenueTrend();
+    }
 
-    @Roles(UserRole.STAFF)
+    @Roles(UserRole.STAFF, UserRole.ADMIN)
     @Get('staff')
     getStaffDashboard(@CurrentUser() user: { id: number }) {
         return this.dashboardService.getStaffDashboard(user.id);
