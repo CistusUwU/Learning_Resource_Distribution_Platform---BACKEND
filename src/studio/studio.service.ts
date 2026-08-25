@@ -6,21 +6,8 @@ import { randomUUID } from "crypto";
 
 type CacheType = 'flashcard' | 'quiz' | 'mindmap';
 
-export interface StudioEntry {
-    id: string;
-    studentId: number | null;
-    bookId: number;
-    type: CacheType;
-    title: string;
-    isAuto: boolean;
-    data: unknown;
-    createdAt: number;
-}
-
 @Injectable()
 export class StudioService {
-    private entries = new Map<string, StudioEntry>();
-
     constructor(
         private readonly prisma: PrismaService,
         private readonly aiService: AiService,
@@ -53,75 +40,82 @@ export class StudioService {
         return `${label} · ${time}`;
     }
 
-    private findEntry(studentId: number, bookId: number, type: CacheType) {
-        return Array.from(this.entries.values())
-            .find((e) => e.studentId === studentId && e.bookId === bookId && e.type === type);
-    }
-
-    private findMindmap(bookId: number) {
-        return Array.from(this.entries.values())
-            .find((e) => e.type === 'mindmap' && e.bookId === bookId);
-    }
-
-
     async generate(studentId: number, bookId: number, type: CacheType, isAuto: boolean) {
         await this.checkAccess(studentId, bookId);
 
         if (type === 'mindmap') {
-            const existing = this.findMindmap(bookId);
+            const existing = await this.prisma.studiocache.findFirst({
+                where: { bookId, type: 'mindmap' },
+            });
             if (existing) return existing;
         }
 
         const fileUrl = await this.getBookPdfUrl(bookId);
 
         let data: unknown;
+        let source: 'gradio' | 'mock';
         if (type === 'flashcard') {
             const res = await this.aiService.generateFlashcards(fileUrl);
             data = { cards: res.cards };
+            source = res.source;
         } else if (type === 'quiz') {
             const res = await this.aiService.generateQuiz(fileUrl);
             data = { questions: res.questions };
+            source = res.source;
         } else {
             const res = await this.aiService.generateMindMap(fileUrl);
             data = { html: res.html };
+            source = res.source;
         }
 
-        const entry: StudioEntry = {
-            id: randomUUID(),
-            studentId: type === 'mindmap' ? null : studentId,
-            bookId,
-            type,
-            title: this.defaultTitle(type),
-            isAuto,
-            data,
-            createdAt: Date.now(),
-        };
-        this.entries.set(entry.id, entry);
-        return entry;
+        if (source === 'mock') {
+            throw new Error('AI hiện không phản hồi được. Vui lòng thử lại sau.');
+        }
+
+        return this.prisma.studiocache.create({
+            data: {
+                id: randomUUID(),
+                studentId: type === 'mindmap' ? null : studentId,
+                bookId,
+                type,
+                title: this.defaultTitle(type),
+                isAuto,
+                data: data as object,
+                updatedAt: new Date(),
+            },
+        });
     }
 
     async getHistory(studentId: number, bookId: number) {
         await this.checkAccess(studentId, bookId);
-        return Array.from(this.entries.values())
-            .filter((e) => e.bookId === bookId && e.studentId === studentId)
-            .sort((a, b) => b.createdAt - a.createdAt)
-            .map(({ id, type, title, isAuto, createdAt }) => ({ id, type, title, isAuto, createdAt }));
+        const entries = await this.prisma.studiocache.findMany({
+            where: { bookId, studentId },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, type: true, title: true, isAuto: true, createdAt: true },
+        });
+        return entries;
     }
 
     async getHistoryItem(studentId: number, id: string) {
-        const entry = this.entries.get(id);
+        const entry = await this.prisma.studiocache.findUnique({ where: { id } });
         if (!entry || entry.studentId !== studentId) throw new NotFoundException('Không tìm thấy');
         await this.checkAccess(studentId, entry.bookId);
         return entry;
     }
 
     async deleteHistoryItem(studentId: number, id: string) {
-        const entry = this.entries.get(id);
+        const entry = await this.prisma.studiocache.findUnique({ where: { id } });
         if (!entry) throw new NotFoundException('Không tìm thấy');
-        if (entry.type === 'mindmap') throw new ForbiddenException('Sơ đồ tư duy không thể xóa');
+
+        if (entry.type === 'mindmap') {
+            await this.checkAccess(studentId, entry.bookId);
+            await this.prisma.studiocache.delete({ where: { id } });
+            return { success: true };
+        }
+
         if (entry.studentId !== studentId) throw new NotFoundException('Không tìm thấy');
         await this.checkAccess(studentId, entry.bookId);
-        this.entries.delete(id);
+        await this.prisma.studiocache.delete({ where: { id } });
         return { success: true };
     }
 

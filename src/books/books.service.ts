@@ -314,7 +314,7 @@ export class BooksService{
                 data: {
                     book_id: book.book_id,
                     lecturer_id: lecturerId,
-                    revenue_share_percent: 70,
+                    revenue_share_percent: 95,
                 },
             });
 
