@@ -64,7 +64,7 @@ export class UsersService {
                 university_id: user.lecturer.lecturer_code,
                 full_name: user.lecturer.full_name,
                 avatar_url: user.lecturer.avatar_url,
-                role: UserRole.STAFF,
+                role: user.lecturer.is_admin ? UserRole.ADMIN : UserRole.STAFF,
                 is_admin: user.lecturer.is_admin ?? false,
                 major: user.lecturer.major ?? null,
             };

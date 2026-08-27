@@ -40,6 +40,47 @@ export class DashboardService {
         };
     }
 
+    async getAdminRevenueTrend() {
+        const now = new Date();
+        const months: { month: number; year: number }[] = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push({ month: d.getMonth() + 1, year: d.getFullYear() });
+        }
+
+        const rangeStart = new Date(months[0].year, months[0].month - 1, 1);
+        const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        const records = await this.prisma.royalty_record.findMany({
+            where: {
+                created_at: { gte: rangeStart, lt: rangeEnd },
+            },
+            select: {
+                earned_amount: true,
+                created_at: true,
+            },
+        });
+
+        const totals = new Map<string, number>();
+        for (const { month, year } of months) {
+            totals.set(`${year}-${month}`, 0);
+        }
+
+        for (const record of records) {
+            const d = record.created_at;
+            const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+            if (totals.has(key)) {
+                totals.set(key, (totals.get(key) ?? 0) + Number(record.earned_amount));
+            }
+        }
+
+        return months.map(({ month, year }) => ({
+            month,
+            year,
+            revenue: totals.get(`${year}-${month}`) ?? 0,
+        }));
+    }
+
     async getStaffDashboard(lecturerId: number) {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

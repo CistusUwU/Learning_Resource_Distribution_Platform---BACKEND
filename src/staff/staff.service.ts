@@ -4,6 +4,8 @@ import { BooksService } from "../books/books.service";
 import { SubmitBookDto } from "../books/dto/submit-book.dto";
 import { UpdateBookDto } from "../books/dto/update-book.dto";
 import { RevenueService } from "../revenue/revenue.service";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
+import { StaffBookQueryDto } from "src/staff/dto/staff-book-query.dto";
 
 @Injectable()
 export class StaffService {
@@ -12,8 +14,8 @@ export class StaffService {
         private readonly revenueService: RevenueService,
     ) {}
 
-    getMyBooks(lecturerId: number) {
-        return this.booksService.findBooksByLecturer(lecturerId);
+    getMyBooks(lecturerId: number, query: StaffBookQueryDto) {
+        return this.booksService.findBooksByLecturer(lecturerId, query);
     }
 
     getMyRevenue(lecturerId: number) {

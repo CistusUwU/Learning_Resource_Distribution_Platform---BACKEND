@@ -18,6 +18,7 @@ export class CategoriesService {
                             where: {
                                 book: {
                                     approval_status: book_approval_status.APPROVED,
+                                    is_archived: false,
                                 }
                             },
                         }

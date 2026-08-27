@@ -5,6 +5,8 @@ import { BookRejectionDto } from "../books/dto/book-rejection.dto";
 import { QueryRevenueDto } from "../revenue/dto/query-revenue.dto";
 import { RevenueService } from "../revenue/revenue.service";
 import { CreatePayoutDto } from "../revenue/dto/create-payout.dto";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
+import { AdminBookQueryDto } from "src/admin/dto/admin-book-query.dto";
 
 @Injectable()
 export class AdminService {
@@ -14,8 +16,16 @@ export class AdminService {
         private readonly revenueService: RevenueService
     ) {}
 
-    async getPendingBooks() {
-        return this.booksService.getPendingBook();
+    async getPendingBooks(query: PaginationQueryDto) {
+        return this.booksService.getPendingBook(query);
+    }
+
+    async getManagedBooks(query: AdminBookQueryDto) {
+        return this.booksService.getAdminManagedBooks(query);
+    }
+
+    async toggleArchive(bookId: number) {
+        return this.booksService.toggleArchive(bookId);
     }
 
     async approveBook(userId: number, bookId: number){
@@ -32,6 +42,14 @@ export class AdminService {
 
     async getRevenueStats(query: QueryRevenueDto){
         return this.revenueService.getStats(query);
+    }
+
+    async getLecturerTransactions(lecturerId: number, query: PaginationQueryDto) {
+        return this.revenueService.getLecturerTransactions(lecturerId, query);
+    }
+
+    async getPayoutBatches(query: PaginationQueryDto) {
+        return this.revenueService.getPayoutBatches(query);
     }
 
     async createPayout(dto: CreatePayoutDto) {
